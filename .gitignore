@@ -1,0 +1,11 @@
+# git conflicts
+*.orig
+
+# osx
+.DS_Store
+profile
+
+# java
+*.class
+bin/
+
