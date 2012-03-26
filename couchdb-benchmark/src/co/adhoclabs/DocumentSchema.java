@@ -323,7 +323,13 @@ public class DocumentSchema {
 		System.out.println("schema=" + schema);
 		Random rng = new Random(2012);
 		ValueGenerator valueGenerator = new ValueGenerator(rng);
-		JSONObject document = schema.getNewDocument(valueGenerator);
-		System.out.println("document=" + document);
+		
+		Timer timer = new Timer();
+		timer.start();
+		for (int i = 0; i < 1000000; ++i) {
+			schema.getNewDocument(valueGenerator);
+		}
+		timer.stop();
+		System.out.println("totalTimeMillis=" + timer.getTotalTimeMillis());
 	}
 }
