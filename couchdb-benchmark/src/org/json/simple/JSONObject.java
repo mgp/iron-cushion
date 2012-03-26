@@ -66,10 +66,17 @@ public class JSONObject extends HashMap implements Map, JSONAware, JSONStreamAwa
 	 * @return JSON text, or "null" if map is null.
 	 */
 	public static String toJSONString(Map map){
-		if(map == null)
-			return "null";
+		StringBuilder sb = new StringBuilder();
+		toJSONString(map, sb);
+		return sb.toString();
+	}
+	
+	public static void toJSONString(Map map, StringBuilder sb) {
+		if(map == null) {
+			sb.append("null");
+			return;
+		}
 		
-        StringBuffer sb = new StringBuffer();
         boolean first = true;
 		Iterator iter=map.entrySet().iterator();
 		
@@ -84,24 +91,22 @@ public class JSONObject extends HashMap implements Map, JSONAware, JSONStreamAwa
 			toJSONString(String.valueOf(entry.getKey()),entry.getValue(), sb);
 		}
         sb.append('}');
-		return sb.toString();
 	}
 	
 	public String toJSONString(){
 		return toJSONString(this);
 	}
 	
-	private static String toJSONString(String key,Object value, StringBuffer sb){
+	private static void toJSONString(String key,Object value, StringBuilder sb){
 		sb.append('\"');
-        if(key == null)
+        if(key == null) {
             sb.append("null");
-        else
+        } else {
             JSONValue.escape(key, sb);
+        }
 		sb.append('\"').append(':');
 		
-		sb.append(JSONValue.toJSONString(value));
-		
-		return sb.toString();
+		JSONValue.toJSONString(value, sb);
 	}
 	
 	public String toString(){
@@ -109,7 +114,7 @@ public class JSONObject extends HashMap implements Map, JSONAware, JSONStreamAwa
 	}
 
 	public static String toString(String key,Object value){
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
 		toJSONString(key, value, sb);
         return sb.toString();
 	}

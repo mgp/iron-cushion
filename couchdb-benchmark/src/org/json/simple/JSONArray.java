@@ -69,11 +69,18 @@ public class JSONArray extends ArrayList implements List, JSONAware, JSONStreamA
 	 * @return JSON text, or "null" if list is null.
 	 */
 	public static String toJSONString(List list){
-		if(list == null)
-			return "null";
+		StringBuilder sb = new StringBuilder();
+		toJSONString(list, sb);
+		return sb.toString();
+	}
+	
+	public static void toJSONString(List list, StringBuilder sb) {
+		if(list == null) {
+			sb.append("null");
+			return;
+		}
 		
         boolean first = true;
-        StringBuffer sb = new StringBuffer();
 		Iterator iter=list.iterator();
         
         sb.append('[');
@@ -88,10 +95,9 @@ public class JSONArray extends ArrayList implements List, JSONAware, JSONStreamA
 				sb.append("null");
 				continue;
 			}
-			sb.append(JSONValue.toJSONString(value));
+			JSONValue.toJSONString(value, sb);
 		}
         sb.append(']');
-		return sb.toString();
 	}
 
 	public String toJSONString(){

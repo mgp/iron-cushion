@@ -169,42 +169,70 @@ public class JSONValue {
 	 * @return JSON text, or "null" if value is null or it's an NaN or an INF number.
 	 */
 	public static String toJSONString(Object value){
-		if(value == null)
-			return "null";
+		StringBuilder sb = new StringBuilder();
+		toJSONString(value, sb);
+		return sb.toString();
+	}
+	
+	public static void toJSONString(Object value, StringBuilder sb) {
+		if(value == null) {
+			sb.append("null");
+			return;
+		}
 		
-		if(value instanceof String)
-			return "\""+escape((String)value)+"\"";
+		if(value instanceof String) {
+			sb.append("\"");
+			escape((String)value, sb);
+			sb.append("\"");
+			return;
+		}
 		
 		if(value instanceof Double){
-			if(((Double)value).isInfinite() || ((Double)value).isNaN())
-				return "null";
-			else
-				return value.toString();
+			if(((Double)value).isInfinite() || ((Double)value).isNaN()) {
+				sb.append("null");
+				return;
+			} else {
+				sb.append(value.toString());
+				return;
+			}
 		}
 		
 		if(value instanceof Float){
-			if(((Float)value).isInfinite() || ((Float)value).isNaN())
-				return "null";
-			else
-				return value.toString();
+			if(((Float)value).isInfinite() || ((Float)value).isNaN()) {
+				sb.append("null");
+				return;
+			} else {
+				sb.append(value.toString());
+				return;
+			}
 		}		
 		
-		if(value instanceof Number)
-			return value.toString();
+		if(value instanceof Number) {
+			sb.append(value.toString());
+			return;
+		}
 		
-		if(value instanceof Boolean)
-			return value.toString();
+		if(value instanceof Boolean) {
+			sb.append(value.toString());
+			return;
+		}
 		
-		if((value instanceof JSONAware))
-			return ((JSONAware)value).toJSONString();
+		if(value instanceof Map) {
+			JSONObject.toJSONString((Map)value, sb);
+			return;
+		}
 		
-		if(value instanceof Map)
-			return JSONObject.toJSONString((Map)value);
+		if(value instanceof List) {
+			JSONArray.toJSONString((List)value, sb);
+			return;
+		}
 		
-		if(value instanceof List)
-			return JSONArray.toJSONString((List)value);
+		if((value instanceof JSONAware)) {
+			sb.append(((JSONAware)value).toJSONString());
+			return;
+		}
 		
-		return value.toString();
+		sb.append(value.toString());
 	}
 
 	/**
@@ -213,9 +241,10 @@ public class JSONValue {
 	 * @return
 	 */
 	public static String escape(String s){
-		if(s==null)
+		if(s==null) {
 			return null;
-        StringBuffer sb = new StringBuffer();
+		}
+        StringBuilder sb = new StringBuilder();
         escape(s, sb);
         return sb.toString();
     }
@@ -224,7 +253,7 @@ public class JSONValue {
      * @param s - Must not be null.
      * @param sb
      */
-    static void escape(String s, StringBuffer sb) {
+    static void escape(String s, StringBuilder sb) {
 		for(int i=0;i<s.length();i++){
 			char ch=s.charAt(i);
 			switch(ch){
