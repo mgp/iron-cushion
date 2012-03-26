@@ -133,11 +133,11 @@ public class DocumentSchema {
 		case DICTIONARY:
 			return getDictionary((DictionaryTag) tag, generator);
 		case BOOLEAN:
-			return generator.getBoolean();
+			return generator.nextBoolean();
 		case INTEGER:
-			return generator.getInt();
+			return generator.nextInt();
 		case FLOAT:
-			return generator.getFloat();
+			return generator.nextFloat();
 		default:
 			break;
 		}
