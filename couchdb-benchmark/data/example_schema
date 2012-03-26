@@ -1,0 +1,76 @@
+<dictionary>
+  <entry>
+    <keyName>dict1</keyName>
+    <value>
+      <dictionary>
+        <entry>
+          <keyName>array2</keyName>
+          <value>
+            <array>
+            </array>
+          </value>
+        </entry>
+
+        <entry>
+          <dictionary>
+            <entry>
+              <keyName>boolean2</keyName>
+              <value>
+                <boolean>
+                </boolean>
+              </value>
+            </entry>
+          </dictionary>
+        </entry>
+      </dictionary>
+    </value>
+  </entry>
+
+  <entry>
+    <keyName>array1</keyName>
+    <value>
+      <array>
+        <element>
+          <array>
+            <element>
+              <float>
+              </float>
+            </element>
+
+            <element>
+              <float>
+              </float>
+            </element>
+          </array>
+        </element>
+        
+        <element>
+          <dictionary>
+          </dictionary>
+        </element>
+
+        <element>
+          <boolean>
+          </boolean>
+        </element>
+      </array>
+    </value>
+  </entry>
+
+  <entry>
+    <keyName>integer1</keyName>
+    <value>
+      <integer>
+      </integer>
+    </value>
+  </entry>
+
+  <entry>
+    <keyName>boolean1</keyName>
+    <value>
+      <boolean>
+      </boolean>
+    </value>
+  </entry>
+</dictionary>
+

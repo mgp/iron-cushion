@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -13,6 +14,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -32,6 +34,14 @@ public class DocumentSchema {
 		}
 		
 		public abstract Type getType();
+		
+		public abstract void toString(StringBuilder sb);
+		
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			toString(sb);
+			return sb.toString();
+		}
 	}
 	
 	/**
@@ -57,6 +67,20 @@ public class DocumentSchema {
 		public Type getType() {
 			return Type.DICTIONARY;
 		}
+		
+		public void toString(StringBuilder sb) {
+			sb.append("{");
+			int index = 0;
+			final int lastIndex = entries.size() - 1;
+			for (Entry entry : entries) {
+				sb.append(entry.keyName).append(": ");
+				entry.value.toString(sb);
+				if (index++ < lastIndex) {
+					sb.append(", ");
+				}
+			}
+			sb.append("}");
+		}
 	}
 	
 	/**
@@ -72,6 +96,19 @@ public class DocumentSchema {
 		public Type getType() {
 			return Type.ARRAY;
 		}
+		
+		public void toString(StringBuilder sb) {
+			sb.append("[");
+			int index = 0;
+			final int lastIndex = elements.size() - 1;
+			for (Tag element : elements) {
+				element.toString(sb);
+				if (index++ < lastIndex) {
+					sb.append(", ");
+				}
+			}
+			sb.append("]");
+		}
 	}
 	
 	/**
@@ -82,6 +119,10 @@ public class DocumentSchema {
 		
 		public Type getType() {
 			return Type.BOOLEAN;
+		}
+		
+		public void toString(StringBuilder sb) {
+			sb.append("boolean");
 		}
 	}
 	
@@ -94,6 +135,10 @@ public class DocumentSchema {
 		public Type getType() {
 			return Type.INTEGER;
 		}
+		
+		public void toString(StringBuilder sb) {
+			sb.append("integer");
+		}
 	}
 	
 	/**
@@ -104,6 +149,10 @@ public class DocumentSchema {
 		
 		public Type getType() {
 			return Type.FLOAT;
+		}
+		
+		public void toString(StringBuilder sb) {
+			sb.append("float");
 		}
 	}
 	
@@ -169,9 +218,15 @@ public class DocumentSchema {
 		List<Tag> elements = new LinkedList<DocumentSchema.Tag>();
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); ++i) {
-			Element childNode = (Element) childNodes.item(i);
-			// TODO: Should childNode be an element tag with the type as its only child?
-			elements.add(parseTag(childNode));
+			Node childNode = childNodes.item(i);
+			if (childNode instanceof Element) {
+				Element childNodeElement = (Element) childNode;
+				NodeList elementChildNodes = childNodeElement.getChildNodes();
+				for (int j = 0; j < elementChildNodes.getLength(); ++j) {
+					Node elementChildNode = elementChildNodes.item(j);
+					elements.add(parseTag((Element) elementChildNode));
+				}
+			}
 		}
 		return new ArrayTag(elements);
 	}
@@ -181,11 +236,20 @@ public class DocumentSchema {
 		Tag value = null;
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); ++i) {
-			Element childNode = (Element) childNodes.item(i);
-			if (childNode.getTagName().equals("keyName")) {
-				keyName = childNode.getNodeValue();
-			} else if (childNode.getTagName().equals("value")) {
-				value = parseTag(childNode);
+			Node childNode = childNodes.item(i);
+			if (childNode instanceof Element) {
+				Element childNodeElement = (Element) childNode;
+				if (childNodeElement.getTagName().equals("keyName")) {
+					keyName = childNodeElement.getChildNodes().item(0).getNodeValue();
+				} else if (childNodeElement.getTagName().equals("value")) {
+					NodeList valueChildNodes = childNodeElement.getChildNodes();
+					for (int j = 0; j < valueChildNodes.getLength(); ++j) {
+						Node valueChildNode = valueChildNodes.item(j);
+						if (valueChildNode instanceof Element) {
+							value = parseTag((Element) valueChildNode);
+						}
+					}
+				}
 			}
 		}
 		return new DictionaryTag.Entry(keyName, value);
@@ -196,8 +260,11 @@ public class DocumentSchema {
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); ++i) {
 			// Each child node is an <entry> element.
-			Element entryElement = (Element) childNodes.item(i);
-			entries.add(parseDictionaryEntryTag(entryElement));
+			Node childNode = childNodes.item(i);
+			if (childNode instanceof Element) {
+				Element entryElement = (Element) childNode;
+				entries.add(parseDictionaryEntryTag(entryElement));
+			}
 		}
 		return new DictionaryTag(entries);
 		
@@ -239,5 +306,22 @@ public class DocumentSchema {
 	 */
 	public JSONObject getNewDocument(ValueGenerator generator) {
 		return getDictionary(root, generator);
+	}
+	
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		root.toString(sb);
+		return sb.toString();
+	}
+	
+	public static void main(String[] args) throws BenchmarkException {
+		String filename = args[0];
+		File file = new File(filename);
+		DocumentSchema schema = DocumentSchema.createSchema(file);
+		System.out.println("schema=" + schema);
+		Random rng = new Random(2012);
+		ValueGenerator valueGenerator = new ValueGenerator(rng);
+		JSONObject document = schema.getNewDocument(valueGenerator);
+		System.out.println(document.toString());
 	}
 }
