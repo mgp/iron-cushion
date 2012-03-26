@@ -1,10 +1,20 @@
 package co.adhoclabs;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 /**
  * A schema that describes the format of documents.
@@ -68,6 +78,8 @@ public class DocumentSchema {
 	 * A {@code <boolean>} tag.
 	 */
 	private static final class BooleanTag extends Tag {
+		private static final BooleanTag INSTANCE = new BooleanTag();
+		
 		public Type getType() {
 			return Type.BOOLEAN;
 		}
@@ -77,6 +89,8 @@ public class DocumentSchema {
 	 * A {@code <integer>} tag.
 	 */
 	private static final class IntegerTag extends Tag {
+		private static final IntegerTag INSTANCE = new IntegerTag();
+		
 		public Type getType() {
 			return Type.INTEGER;
 		}
@@ -86,6 +100,8 @@ public class DocumentSchema {
 	 * A {@code <float>} tag.
 	 */
 	private static final class FloatTag extends Tag {
+		private static final FloatTag INSTANCE = new FloatTag();
+		
 		public Type getType() {
 			return Type.FLOAT;
 		}
@@ -134,12 +150,93 @@ public class DocumentSchema {
 		this.root = root;
 	}
 	
-	public static DocumentSchema createSchema(File schemaFile) {
-		// TODO
-		DictionaryTag root = null;
-		return new DocumentSchema(root);
+	private static Tag parseTag(Element element) {
+		if (element.getTagName().equals("array")) {
+			return parseArrayTag(element);
+		} else if (element.getTagName().equals("dictionary")) {
+			return parseDictionaryTag(element);
+		} else if (element.getTagName().equals("integer")) {
+			return IntegerTag.INSTANCE;
+		} else if (element.getTagName().equals("float")) {
+			return FloatTag.INSTANCE;
+		} else if (element.getTagName().equals("boolean")) {
+			return BooleanTag.INSTANCE;
+		}
+		return null;
 	}
 	
+	private static ArrayTag parseArrayTag(Element element) {
+		List<Tag> elements = new LinkedList<DocumentSchema.Tag>();
+		NodeList childNodes = element.getChildNodes();
+		for (int i = 0; i < childNodes.getLength(); ++i) {
+			Element childNode = (Element) childNodes.item(i);
+			// TODO: Should childNode be an element tag with the type as its only child?
+			elements.add(parseTag(childNode));
+		}
+		return new ArrayTag(elements);
+	}
+	
+	private static DictionaryTag.Entry parseDictionaryEntryTag(Element element) {
+		String keyName = null;
+		Tag value = null;
+		NodeList childNodes = element.getChildNodes();
+		for (int i = 0; i < childNodes.getLength(); ++i) {
+			Element childNode = (Element) childNodes.item(i);
+			if (childNode.getTagName().equals("keyName")) {
+				keyName = childNode.getNodeValue();
+			} else if (childNode.getTagName().equals("value")) {
+				value = parseTag(childNode);
+			}
+		}
+		return new DictionaryTag.Entry(keyName, value);
+	}
+	
+	private static DictionaryTag parseDictionaryTag(Element element) {
+		List<DictionaryTag.Entry> entries = new LinkedList<DocumentSchema.DictionaryTag.Entry>();
+		NodeList childNodes = element.getChildNodes();
+		for (int i = 0; i < childNodes.getLength(); ++i) {
+			// Each child node is an <entry> element.
+			Element entryElement = (Element) childNodes.item(i);
+			entries.add(parseDictionaryEntryTag(entryElement));
+		}
+		return new DictionaryTag(entries);
+		
+	}
+	
+	private static DictionaryTag parseDocument(Document document) {
+		Element root = document.getDocumentElement();
+		return parseDictionaryTag(root);
+	}
+	
+	/**
+	 * Returns a {@link DocumentSchema} parsed from the XML in the given file.
+	 * 
+	 * @param schemaFile the file containing the XML of the schema
+	 * @return the document schema
+	 */
+	public static DocumentSchema createSchema(File schemaFile) throws BenchmarkException {
+		DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = null;
+		try {
+			builder = builderFactory.newDocumentBuilder();
+			Document document = builder.parse(schemaFile);
+			DictionaryTag root = parseDocument(document);
+			return new DocumentSchema(root);
+		} catch (ParserConfigurationException e) {
+			throw new BenchmarkException(e);
+		} catch (SAXException e) {
+			throw new BenchmarkException(e);
+		} catch (IOException e) {
+			throw new BenchmarkException(e);
+		}
+	}
+	
+	/**
+	 * Returns the JSON for a new document that conforms to the schema.
+	 * 
+	 * @param generator the generator for values in the document
+	 * @return the JSON for the new document
+	 */
 	public JSONObject getNewDocument(ValueGenerator generator) {
 		return getDictionary(root, generator);
 	}
