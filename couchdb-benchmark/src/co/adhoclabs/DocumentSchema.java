@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -314,22 +313,5 @@ public class DocumentSchema {
 		StringBuilder sb = new StringBuilder();
 		root.toString(sb);
 		return sb.toString();
-	}
-	
-	public static void main(String[] args) throws BenchmarkException {
-		String filename = args[0];
-		File file = new File(filename);
-		DocumentSchema schema = DocumentSchema.createSchema(file);
-		System.out.println("schema=" + schema);
-		Random rng = new Random(2012);
-		ValueGenerator valueGenerator = new ValueGenerator(rng);
-		
-		Timer timer = new Timer();
-		timer.start();
-		for (int i = 0; i < 1000000; ++i) {
-			schema.getNewDocument(valueGenerator);
-		}
-		timer.stop();
-		System.out.println("totalTimeMillis=" + timer.getTotalTimeMillis());
 	}
 }
