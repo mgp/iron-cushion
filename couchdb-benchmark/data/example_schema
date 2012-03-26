@@ -12,15 +12,17 @@
         </entry>
 
         <entry>
-          <dictionary>
-            <entry>
-              <keyName>boolean2</keyName>
-              <value>
-                <boolean>
-                </boolean>
-              </value>
-            </entry>
-          </dictionary>
+          <keyName>dict2</keyName>
+          <value>
+            <dictionary>
+              <entry>
+                <keyName>boolean2</keyName>
+                <value>
+                  <boolean />
+                </value>
+              </entry>
+            </dictionary>
+          </value>
         </entry>
       </dictionary>
     </value>
@@ -33,13 +35,11 @@
         <element>
           <array>
             <element>
-              <float>
-              </float>
+              <float />
             </element>
 
             <element>
-              <float>
-              </float>
+              <float />
             </element>
           </array>
         </element>
@@ -50,8 +50,7 @@
         </element>
 
         <element>
-          <boolean>
-          </boolean>
+          <boolean />
         </element>
       </array>
     </value>
@@ -60,16 +59,14 @@
   <entry>
     <keyName>integer1</keyName>
     <value>
-      <integer>
-      </integer>
+      <integer />
     </value>
   </entry>
 
   <entry>
     <keyName>boolean1</keyName>
     <value>
-      <boolean>
-      </boolean>
+      <boolean />
     </value>
   </entry>
 </dictionary>

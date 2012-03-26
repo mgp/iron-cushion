@@ -224,7 +224,9 @@ public class DocumentSchema {
 				NodeList elementChildNodes = childNodeElement.getChildNodes();
 				for (int j = 0; j < elementChildNodes.getLength(); ++j) {
 					Node elementChildNode = elementChildNodes.item(j);
-					elements.add(parseTag((Element) elementChildNode));
+					if (elementChildNode instanceof Element) {
+						elements.add(parseTag((Element) elementChildNode));
+					}
 				}
 			}
 		}
@@ -322,6 +324,6 @@ public class DocumentSchema {
 		Random rng = new Random(2012);
 		ValueGenerator valueGenerator = new ValueGenerator(rng);
 		JSONObject document = schema.getNewDocument(valueGenerator);
-		System.out.println(document.toString());
+		System.out.println("document=" + document);
 	}
 }
