@@ -25,6 +25,7 @@ public class CouchDbBenchmark {
 					schema, valueGenerator, i,
 					parsedArguments.numDocumentsPerBulkInsert,
 					parsedArguments.numBulkInsertOperations);
+			allBulkInsertDocuments.add(bulkInsertDocuments);
 		}
 		// Create the bulk insert URL.
 		StringBuilder sb = new StringBuilder(parsedArguments.databaseUrl);

@@ -83,20 +83,20 @@ public class ParsedArguments {
 		this.viewsFile = viewsFile;
 	}
 
-	private static final String DATABASE_URL = "--database_url";
-	private static final String NUM_CONNECTIONS_PREFIX = "--num_connections";
+	private static final String DATABASE_URL = "--database_url=";
+	private static final String NUM_CONNECTIONS_PREFIX = "--num_connections=";
 
-	private static final String NUM_DOCUMENTS_PER_BULK_INSERT_PREFIX = "--num_documents_per_bulk_insert";
-	private static final String NUM_BULK_INSERT_OPERATIONS_PREFIX = "--num_bulk_insert_operations";
+	private static final String NUM_DOCUMENTS_PER_BULK_INSERT_PREFIX = "--num_documents_per_bulk_insert=";
+	private static final String NUM_BULK_INSERT_OPERATIONS_PREFIX = "--num_bulk_insert_operations=";
 	
-	private static final String NUM_CRUD_OPERATIONS_PREFIX = "--num_crud_operations";
-	private static final String CREATE_WEIGHT_PREFIX = "--create_weight";
-	private static final String READ_WEIGHT_PREFIX = "--read_weight";
-	private static final String UPDATE_WEIGHT_PREFIX = "--update_weight";
-	private static final String DELETE_WEIGHT_PREFIX = "--delete_weight";
+	private static final String NUM_CRUD_OPERATIONS_PREFIX = "--num_crud_operations=";
+	private static final String CREATE_WEIGHT_PREFIX = "--create_weight=";
+	private static final String READ_WEIGHT_PREFIX = "--read_weight=";
+	private static final String UPDATE_WEIGHT_PREFIX = "--update_weight=";
+	private static final String DELETE_WEIGHT_PREFIX = "--delete_weight=";
 
-	private static final String DOCUMENT_SCHEMA_FILENAME_PREFIX = "--document_schema_filename";
-	private static final String VIEWS_FILENAME_PREFIX = "--views_filename";
+	private static final String DOCUMENT_SCHEMA_FILENAME_PREFIX = "--document_schema_filename=";
+	private static final String VIEWS_FILENAME_PREFIX = "--views_filename=";
 	
 	private static String valueForArgument(String arg, String argumentPrefix) {
 		return arg.substring(argumentPrefix.length());
@@ -151,7 +151,7 @@ public class ParsedArguments {
 		// TODO: validate the args
 		
 		File documentSchemaFile = new File(documentSchemaFilename);
-		File viewsFile = new File(viewsFilename);
+		File viewsFile = null;	// new File(viewsFilename);
 		
 		return new ParsedArguments(databaseUrl,
 				numConnections,

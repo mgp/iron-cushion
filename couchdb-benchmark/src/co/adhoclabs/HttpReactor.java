@@ -1,5 +1,8 @@
 package co.adhoclabs;
 
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -14,11 +17,14 @@ import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
+import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
 import org.jboss.netty.handler.codec.http.HttpChunk;
+import org.jboss.netty.handler.codec.http.HttpClientCodec;
+import org.jboss.netty.handler.codec.http.HttpContentDecompressor;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -130,7 +136,7 @@ public class HttpReactor {
 			insertOperationsCompleted++;
 		}
 		
-		void close(Channel channel) {
+		private void close(Channel channel) {
 			ChannelFuture channelFuture = channel.close();
 			channelFuture.addListener(new ChannelFutureListener() {
 				@Override
@@ -176,6 +182,12 @@ public class HttpReactor {
 				}
 			}
 		}
+		
+		public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
+			e.getCause().printStackTrace();
+			
+			close(e.getChannel());
+		}
 	}
 	
 	private static final class BulkInsertPipeline implements ChannelPipelineFactory {
@@ -202,6 +214,8 @@ public class HttpReactor {
 			BulkInsertDocuments documents = allBulkInsertDocuments.get(connectionNum);
 			connectionNum++;
 			return Channels.pipeline(
+					new HttpClientCodec(),
+					new HttpContentDecompressor(),
 					new BulkInsertHandler(documents, bulkInsertUri, responseHandler, countDownLatch));
 		}
 	}
@@ -220,8 +234,17 @@ public class HttpReactor {
 					allBulkInsertDocuments, bulkInsertUri, PrintResponseHandler.INSTANCE, countDownLatch);
 			clientBootstrap.setPipelineFactory(bulkInsertPipeline);
 			
+			URI uri;
+			try {
+				uri = new URI(bulkInsertUri);
+			} catch (URISyntaxException e) {
+				throw new BenchmarkException(e);
+			}
+			String host = uri.getHost();
+			int port = uri.getPort();
+			InetSocketAddress address = new InetSocketAddress(host, port);
 			for (int i = 0; i < numConnections; ++i) {
-				clientBootstrap.connect();
+				clientBootstrap.connect(address);
 			}
 			
 			// Wait for all connections to complete their bulk insert operations.
