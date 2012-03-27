@@ -9,7 +9,7 @@ import java.util.List;
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public class ScheduledOperations {
-	private List<List<Operation>> operationsForConnections;
+	private final List<List<Operation>> operationsForConnections;
 	
 	private ScheduledOperations(List<List<Operation>> operationsForConnections) {
 		this.operationsForConnections = operationsForConnections;
@@ -22,8 +22,8 @@ public class ScheduledOperations {
 	private static List<Operation> getConnectionOperations(
 			int connectionNum, ParsedArguments parsedArguments,
 			int numCreateOps, int numReadOps, int numUpdateOps, int numDeleteOps) {
-		List<Operation> operations = new ArrayList<Operation>(parsedArguments.operationsPerConnection);
-		
+		List<Operation> operations = new ArrayList<Operation>(parsedArguments.numCrudOperations);
+		// TODO
 		return operations;
 	}
 	
@@ -35,10 +35,10 @@ public class ScheduledOperations {
 		double createPercentage = parsedArguments.createWeight / totalWeight;
 		double readPercentage = parsedArguments.readWeight / totalWeight;
 		double updatePercentage = parsedArguments.updateWeight / totalWeight;
-		int numCreateOps = (int) (createPercentage * parsedArguments.operationsPerConnection);
-		int numReadOps = (int) (readPercentage * parsedArguments.operationsPerConnection);
-		int numUpdateOps = (int) (updatePercentage * parsedArguments.operationsPerConnection);
-		int numDeleteOps = parsedArguments.operationsPerConnection -
+		int numCreateOps = (int) (createPercentage * parsedArguments.numCrudOperations);
+		int numReadOps = (int) (readPercentage * parsedArguments.numCrudOperations);
+		int numUpdateOps = (int) (updatePercentage * parsedArguments.numCrudOperations);
+		int numDeleteOps = parsedArguments.numCrudOperations -
 				(numCreateOps + numReadOps + numUpdateOps);
 		
 		List<List<Operation>> operationsForConnections =

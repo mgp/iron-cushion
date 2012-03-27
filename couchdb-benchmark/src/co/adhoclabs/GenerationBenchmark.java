@@ -25,6 +25,7 @@ public class GenerationBenchmark {
 		timer.stop();
 		System.out.println("document creation totalTimeMillis=" + timer.getTotalTimeMillis());
 		
+		/*
 		HttpReactor reactor = new HttpReactor(0);
 		timer.reset();
 		timer.start();
@@ -32,5 +33,6 @@ public class GenerationBenchmark {
 		timer.stop();
 		System.out.println("bulk insert body totalTimeMillis=" + timer.getTotalTimeMillis());
 		System.out.println("bulkInsertBody.length()=" + bulkInsertBody.length());
+		*/
 	}
 }

@@ -19,6 +19,14 @@ import java.util.List;
 public class JSONArray extends ArrayList implements List, JSONAware, JSONStreamAware {
 	private static final long serialVersionUID = 3957988303675231981L;
 
+	public JSONArray() {
+		super();
+	}
+	
+	public JSONArray(int initialCapacity) {
+		super(initialCapacity);
+	}
+	
     /**
      * Encode a list into JSON text and write it to out. 
      * If this list is also a JSONStreamAware or a JSONAware, JSONStreamAware and JSONAware specific behaviours will be ignored at this top level.
