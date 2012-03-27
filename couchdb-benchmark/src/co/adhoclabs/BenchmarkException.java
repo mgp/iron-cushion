@@ -8,18 +8,30 @@ package co.adhoclabs;
 public class BenchmarkException extends Exception {
 	private static final long serialVersionUID = 2760276664533320631L;
 
+	/**
+	 * {@inheritDoc}
+	 */
 	public BenchmarkException() {
 		super();
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	public BenchmarkException(String message) {
 		super(message);
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	public BenchmarkException(Throwable cause) {
 		super(cause);
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	public BenchmarkException(String message, Throwable cause) {
 		super(message, cause);
 	}
