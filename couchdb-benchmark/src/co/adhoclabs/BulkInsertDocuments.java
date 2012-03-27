@@ -43,4 +43,8 @@ public class BulkInsertDocuments {
 	public ChannelBuffer getBuffer(int insertOperation) {
 		return insertBuffers.get(insertOperation);
 	}
+	
+	public int size() {
+		return insertBuffers.size();
+	}
 }
