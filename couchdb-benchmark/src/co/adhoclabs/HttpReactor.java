@@ -23,7 +23,9 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
+import org.jboss.netty.util.CharsetUtil;
 
 /**
  * The networking engine that asynchronously executes HTTP requests.
@@ -33,17 +35,72 @@ import org.jboss.netty.handler.codec.http.HttpVersion;
 public class HttpReactor {
 	private final ClientBootstrap clientBootstrap;
 	
+	/**
+	 * Interface for a consumer of HTTP responses.
+	 */
+	public interface ResponseHandler {
+		public void setStatusCode(HttpResponseStatus statusCode);
+		public void appendBody(CharSequence string);
+		public void endBody();
+	}
+	
+	/**
+	 * A {@link ResponseHandler} that prints the response to {@link System#out}.
+	 */
+	public static final class PrintResponseHandler implements ResponseHandler {
+		public static final PrintResponseHandler INSTANCE = new PrintResponseHandler();
+		
+		private PrintResponseHandler() {
+		}
+		public void setStatusCode(HttpResponseStatus statusCode) {
+			System.out.print("status=");
+			System.out.println(statusCode);
+			System.out.flush();
+		}
+		public void appendBody(CharSequence string) {
+			System.out.print(string);
+			System.out.flush();
+		}
+		public void endBody() {
+			System.out.print("\n\n");
+			System.out.flush();
+		}
+	}
+	
+	/**
+	 * A {@link ResponseHandler} that discards the response.
+	 */
+	public static final class NullResponseHandler implements ResponseHandler {
+		public static final NullResponseHandler INSTANCE = new NullResponseHandler();
+		
+		private NullResponseHandler() {
+		}
+		public void setStatusCode(HttpResponseStatus statusCode) {
+			// Do nothing.
+		}
+		public void appendBody(CharSequence string) {
+			// Do nothing.
+		}
+		public void endBody() {
+			// Do nothing.
+		}
+	}
+	
 	private static final class BulkInsertHandler extends SimpleChannelUpstreamHandler {
 		private final BulkInsertDocuments documents;
 		private final String uri;
+		private final ResponseHandler responseHandler;
 		private final CountDownLatch countDownLatch;
 		
 		private int insertOperationsCompleted;
 		private boolean readingChunks;
 		
-		private BulkInsertHandler(BulkInsertDocuments documents, String uri, CountDownLatch countDownLatch) {
+		private BulkInsertHandler(
+				BulkInsertDocuments documents, String uri, ResponseHandler responseHandler,
+				CountDownLatch countDownLatch) {
 			this.documents = documents;
 			this.uri = uri;
+			this.responseHandler = responseHandler;
 			this.countDownLatch = countDownLatch;
 			
 			this.insertOperationsCompleted = 0;
@@ -95,13 +152,15 @@ public class HttpReactor {
 			Channel channel = e.getChannel();
 			if (!readingChunks) {
 				HttpResponse response = (HttpResponse) e.getMessage();
+				responseHandler.setStatusCode(response.getStatus());
 				
 				if (!response.isChunked()) {
 					readingChunks = true;
 				} else {
 					ChannelBuffer content = response.getContent();
 					if (content.readable()) {
-						// TODO
+						String body = content.toString(CharsetUtil.UTF_8);
+						responseHandler.appendBody(body);
 						writeNextBulkInsertOrClose(channel);
 					}
 				}
@@ -109,9 +168,11 @@ public class HttpReactor {
 				HttpChunk chunk = (HttpChunk) e.getMessage();
 				if (chunk.isLast()) {
 					readingChunks = false;
+					responseHandler.endBody();
 					writeNextBulkInsertOrClose(channel);
 				} else {
-					
+					String body = chunk.getContent().toString(CharsetUtil.UTF_8);
+					responseHandler.appendBody(body);
 				}
 			}
 		}
@@ -120,15 +181,17 @@ public class HttpReactor {
 	private static final class BulkInsertPipeline implements ChannelPipelineFactory {
 		private final List<BulkInsertDocuments> allBulkInsertDocuments;
 		private final String bulkInsertUri;
+		private final ResponseHandler responseHandler;
 		private final CountDownLatch countDownLatch;
 		
 		private int connectionNum;
 		
 		private BulkInsertPipeline(
 				List<BulkInsertDocuments> allBulkInsertDocuments, String bulkInsertUri,
-				CountDownLatch countDownLatch) {
+				ResponseHandler responseHandler, CountDownLatch countDownLatch) {
 			this.allBulkInsertDocuments = allBulkInsertDocuments;
 			this.bulkInsertUri = bulkInsertUri;
+			this.responseHandler = responseHandler;
 			this.countDownLatch = countDownLatch;
 			
 			connectionNum = 0;
@@ -138,7 +201,8 @@ public class HttpReactor {
 		public ChannelPipeline getPipeline() throws Exception {
 			BulkInsertDocuments documents = allBulkInsertDocuments.get(connectionNum);
 			connectionNum++;
-			return Channels.pipeline(new BulkInsertHandler(documents, bulkInsertUri, countDownLatch));
+			return Channels.pipeline(
+					new BulkInsertHandler(documents, bulkInsertUri, responseHandler, countDownLatch));
 		}
 	}
 	
@@ -153,7 +217,7 @@ public class HttpReactor {
 						Executors.newCachedThreadPool(),
 						Executors.newCachedThreadPool()));
 			BulkInsertPipeline bulkInsertPipeline = new BulkInsertPipeline(
-					allBulkInsertDocuments, bulkInsertUri, countDownLatch);
+					allBulkInsertDocuments, bulkInsertUri, PrintResponseHandler.INSTANCE, countDownLatch);
 			clientBootstrap.setPipelineFactory(bulkInsertPipeline);
 			
 			for (int i = 0; i < numConnections; ++i) {
