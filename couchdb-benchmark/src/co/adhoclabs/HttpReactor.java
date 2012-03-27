@@ -31,7 +31,7 @@ import org.jboss.netty.handler.codec.http.HttpVersion;
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public class HttpReactor {
-	ClientBootstrap clientBootstrap;
+	private final ClientBootstrap clientBootstrap;
 	
 	private static final class BulkInsertHandler extends SimpleChannelUpstreamHandler {
 		private final BulkInsertDocuments documents;
@@ -92,6 +92,7 @@ public class HttpReactor {
 		
 		@Override
 		public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+			Channel channel = e.getChannel();
 			if (!readingChunks) {
 				HttpResponse response = (HttpResponse) e.getMessage();
 				
@@ -101,12 +102,14 @@ public class HttpReactor {
 					ChannelBuffer content = response.getContent();
 					if (content.readable()) {
 						// TODO
+						writeNextBulkInsertOrClose(channel);
 					}
 				}
 			} else {
 				HttpChunk chunk = (HttpChunk) e.getMessage();
 				if (chunk.isLast()) {
 					readingChunks = false;
+					writeNextBulkInsertOrClose(channel);
 				} else {
 					
 				}
@@ -157,7 +160,10 @@ public class HttpReactor {
 				clientBootstrap.connect();
 			}
 			
+			// Wait for all connections to complete their bulk insert operations.
 			countDownLatch.await();
+			// Shut down executor threads to exit.
+			clientBootstrap.releaseExternalResources();
 		} catch (InterruptedException e) {
 			throw new BenchmarkException(e);
 		}

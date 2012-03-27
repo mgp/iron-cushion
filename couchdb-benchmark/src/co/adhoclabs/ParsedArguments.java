@@ -8,6 +8,10 @@ import java.io.File;
  */
 public class ParsedArguments {
 	/**
+	 * The URL of the database.
+	 */
+	public final String databaseUrl;
+	/**
 	 * The number of connections to open concurrently.
 	 */
 	public final int numConnections;
@@ -55,7 +59,8 @@ public class ParsedArguments {
 	/**
 	 * Use {@link #parseArguments(String[])} below.
 	 */
-	private ParsedArguments(int numConnections,
+	private ParsedArguments(String databaseUrl,
+			int numConnections,
 			int numDocumentsPerBulkInsert,
 			int numBulkInsertOperations,
 			int numCrudOperations,
@@ -65,6 +70,7 @@ public class ParsedArguments {
 			int deleteWeight,
 			File documentSchemaFile,
 			File viewsFile) {
+		this.databaseUrl = databaseUrl;
 		this.numConnections = numConnections;
 		this.numDocumentsPerBulkInsert = numDocumentsPerBulkInsert;
 		this.numBulkInsertOperations = numBulkInsertOperations;
@@ -77,6 +83,7 @@ public class ParsedArguments {
 		this.viewsFile = viewsFile;
 	}
 
+	private static final String DATABASE_URL = "--database_url";
 	private static final String NUM_CONNECTIONS_PREFIX = "--num_connections";
 
 	private static final String NUM_DOCUMENTS_PER_BULK_INSERT_PREFIX = "--num_documents_per_bulk_insert";
@@ -101,6 +108,7 @@ public class ParsedArguments {
 	}
 	
 	public static ParsedArguments parseArguments(String[] args) {
+		String databaseUrl = null;
 		int numConnections = 1;
 		int numDocumentsPerBulkInsert = 0;
 		int numBulkInsertOperations = 0;
@@ -113,7 +121,9 @@ public class ParsedArguments {
 		String viewsFilename = null;
 		
 		for (String arg : args) {
-			if (arg.startsWith(NUM_CONNECTIONS_PREFIX)) {
+			if (arg.startsWith(DATABASE_URL)) {
+				databaseUrl = valueForArgument(arg, DATABASE_URL);
+			} else if (arg.startsWith(NUM_CONNECTIONS_PREFIX)) {
 				numConnections = intValueForArgument(arg, NUM_CONNECTIONS_PREFIX);
 			} else if (arg.startsWith(NUM_DOCUMENTS_PER_BULK_INSERT_PREFIX)) {
 				numDocumentsPerBulkInsert = intValueForArgument(arg, NUM_DOCUMENTS_PER_BULK_INSERT_PREFIX);
@@ -143,7 +153,8 @@ public class ParsedArguments {
 		File documentSchemaFile = new File(documentSchemaFilename);
 		File viewsFile = new File(viewsFilename);
 		
-		return new ParsedArguments(numConnections,
+		return new ParsedArguments(databaseUrl,
+				numConnections,
 				numDocumentsPerBulkInsert,
 				numBulkInsertOperations,
 				numCrudOperations,

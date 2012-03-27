@@ -44,7 +44,7 @@ public class DocumentSchema {
 	}
 	
 	/**
-	 * A {@code <dict>} tag.
+	 * A {@code <dictionary>} tag.
 	 */
 	private static final class DictionaryTag extends Tag {
 		private static final class Entry {
