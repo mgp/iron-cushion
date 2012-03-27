@@ -8,9 +8,13 @@ import java.io.File;
  */
 public class ParsedArguments {
 	/**
-	 * The URL of the database.
+	 * The address of the database.
 	 */
-	public final String databaseUrl;
+	public final String databaseAddress;
+	/**
+	 * The name of the database.
+	 */
+	public final String databaseName;
 	/**
 	 * The number of connections to open concurrently.
 	 */
@@ -59,7 +63,8 @@ public class ParsedArguments {
 	/**
 	 * Use {@link #parseArguments(String[])} below.
 	 */
-	private ParsedArguments(String databaseUrl,
+	private ParsedArguments(String databaseAddress,
+			String databaseName,
 			int numConnections,
 			int numDocumentsPerBulkInsert,
 			int numBulkInsertOperations,
@@ -70,7 +75,8 @@ public class ParsedArguments {
 			int deleteWeight,
 			File documentSchemaFile,
 			File viewsFile) {
-		this.databaseUrl = databaseUrl;
+		this.databaseAddress = databaseAddress;
+		this.databaseName = databaseName;
 		this.numConnections = numConnections;
 		this.numDocumentsPerBulkInsert = numDocumentsPerBulkInsert;
 		this.numBulkInsertOperations = numBulkInsertOperations;
@@ -83,7 +89,8 @@ public class ParsedArguments {
 		this.viewsFile = viewsFile;
 	}
 
-	private static final String DATABASE_URL = "--database_url=";
+	private static final String DATABASE_ADDRESS_PREFIX = "--database_address=";
+	private static final String DATABASE_NAME_PREFIX = "--database_name=";
 	private static final String NUM_CONNECTIONS_PREFIX = "--num_connections=";
 
 	private static final String NUM_DOCUMENTS_PER_BULK_INSERT_PREFIX = "--num_documents_per_bulk_insert=";
@@ -108,7 +115,8 @@ public class ParsedArguments {
 	}
 	
 	public static ParsedArguments parseArguments(String[] args) {
-		String databaseUrl = null;
+		String databaseAddress = null;
+		String databaseName = null;
 		int numConnections = 1;
 		int numDocumentsPerBulkInsert = 0;
 		int numBulkInsertOperations = 0;
@@ -121,8 +129,10 @@ public class ParsedArguments {
 		String viewsFilename = null;
 		
 		for (String arg : args) {
-			if (arg.startsWith(DATABASE_URL)) {
-				databaseUrl = valueForArgument(arg, DATABASE_URL);
+			if (arg.startsWith(DATABASE_ADDRESS_PREFIX)) {
+				databaseAddress = valueForArgument(arg, DATABASE_ADDRESS_PREFIX);
+			} else if (arg.startsWith(DATABASE_NAME_PREFIX)) {
+				databaseName = valueForArgument(arg, DATABASE_NAME_PREFIX);
 			} else if (arg.startsWith(NUM_CONNECTIONS_PREFIX)) {
 				numConnections = intValueForArgument(arg, NUM_CONNECTIONS_PREFIX);
 			} else if (arg.startsWith(NUM_DOCUMENTS_PER_BULK_INSERT_PREFIX)) {
@@ -153,7 +163,8 @@ public class ParsedArguments {
 		File documentSchemaFile = new File(documentSchemaFilename);
 		File viewsFile = null;	// new File(viewsFilename);
 		
-		return new ParsedArguments(databaseUrl,
+		return new ParsedArguments(databaseAddress,
+				databaseName,
 				numConnections,
 				numDocumentsPerBulkInsert,
 				numBulkInsertOperations,

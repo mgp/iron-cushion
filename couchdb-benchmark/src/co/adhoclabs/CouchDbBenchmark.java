@@ -1,5 +1,8 @@
 package co.adhoclabs;
 
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -27,17 +30,26 @@ public class CouchDbBenchmark {
 					parsedArguments.numBulkInsertOperations);
 			allBulkInsertDocuments.add(bulkInsertDocuments);
 		}
-		// Create the bulk insert URL.
-		StringBuilder sb = new StringBuilder(parsedArguments.databaseUrl);
-		if (!parsedArguments.databaseUrl.endsWith("/")) {
-			sb.append('/');
+		
+		// Create the address of the server.
+		URI databaseUri;
+		try {
+			databaseUri = new URI(parsedArguments.databaseAddress);
+		} catch (URISyntaxException e) {
+			throw new BenchmarkException(e);
 		}
-		sb.append("_bulk_docs");
-		String bulkInsertUri = sb.toString();
+		InetSocketAddress databaseAddress = new InetSocketAddress(
+				databaseUri.getHost(), databaseUri.getPort());
+		
+		// Create the bulk insert path.
+		StringBuilder sb = new StringBuilder();
+		sb.append('/').append(parsedArguments.databaseName);
+		sb.append('/').append("_bulk_docs");
+		String bulkInsertPath = sb.toString();
 		
 		// Perform the bulk insert operations.
 		HttpReactor httpReactor = new HttpReactor(
-				parsedArguments.numConnections, allBulkInsertDocuments, bulkInsertUri);
+				parsedArguments.numConnections, allBulkInsertDocuments, databaseAddress, bulkInsertPath);
 
 		/*
 		httpReactor.performBulkInserts();

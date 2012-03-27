@@ -94,7 +94,7 @@ public class HttpReactor {
 	
 	private static final class BulkInsertHandler extends SimpleChannelUpstreamHandler {
 		private final BulkInsertDocuments documents;
-		private final String uri;
+		private final String bulkInsertPath;
 		private final ResponseHandler responseHandler;
 		private final CountDownLatch countDownLatch;
 		
@@ -102,10 +102,10 @@ public class HttpReactor {
 		private boolean readingChunks;
 		
 		private BulkInsertHandler(
-				BulkInsertDocuments documents, String uri, ResponseHandler responseHandler,
+				BulkInsertDocuments documents, String bulkInsertPath, ResponseHandler responseHandler,
 				CountDownLatch countDownLatch) {
 			this.documents = documents;
-			this.uri = uri;
+			this.bulkInsertPath = bulkInsertPath;
 			this.responseHandler = responseHandler;
 			this.countDownLatch = countDownLatch;
 			
@@ -125,9 +125,11 @@ public class HttpReactor {
 		private void writeNextBulkInsert(Channel channel) {
 			// Assign the headers.
 			HttpRequest request = new DefaultHttpRequest(
-					HttpVersion.HTTP_1_1, HttpMethod.POST, uri);
+					HttpVersion.HTTP_1_1, HttpMethod.POST, bulkInsertPath);
+			System.out.println("bulkInsertPath path=" + bulkInsertPath);
 			request.setHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 			request.setHeader(HttpHeaders.Names.ACCEPT_ENCODING, HttpHeaders.Values.GZIP);
+			request.setHeader(HttpHeaders.Names.CONTENT_TYPE, "application/json");
 			// Assign the body.
 			ChannelBuffer insertBuffer = documents.getBuffer(insertOperationsCompleted);
 			request.setContent(insertBuffer);
@@ -159,6 +161,7 @@ public class HttpReactor {
 			if (!readingChunks) {
 				HttpResponse response = (HttpResponse) e.getMessage();
 				responseHandler.setStatusCode(response.getStatus());
+				System.out.println("BODY=" + response.getContent().toString(CharsetUtil.UTF_8));
 				
 				if (!response.isChunked()) {
 					readingChunks = true;
@@ -192,17 +195,17 @@ public class HttpReactor {
 	
 	private static final class BulkInsertPipeline implements ChannelPipelineFactory {
 		private final List<BulkInsertDocuments> allBulkInsertDocuments;
-		private final String bulkInsertUri;
+		private final String bulkInsertPath;
 		private final ResponseHandler responseHandler;
 		private final CountDownLatch countDownLatch;
 		
 		private int connectionNum;
 		
 		private BulkInsertPipeline(
-				List<BulkInsertDocuments> allBulkInsertDocuments, String bulkInsertUri,
+				List<BulkInsertDocuments> allBulkInsertDocuments, String bulkInsertPath,
 				ResponseHandler responseHandler, CountDownLatch countDownLatch) {
 			this.allBulkInsertDocuments = allBulkInsertDocuments;
-			this.bulkInsertUri = bulkInsertUri;
+			this.bulkInsertPath = bulkInsertPath;
 			this.responseHandler = responseHandler;
 			this.countDownLatch = countDownLatch;
 			
@@ -216,35 +219,29 @@ public class HttpReactor {
 			return Channels.pipeline(
 					new HttpClientCodec(),
 					new HttpContentDecompressor(),
-					new BulkInsertHandler(documents, bulkInsertUri, responseHandler, countDownLatch));
+					new BulkInsertHandler(documents, bulkInsertPath, responseHandler, countDownLatch));
 		}
 	}
 	
 	public HttpReactor(int numConnections,
-			List<BulkInsertDocuments> allBulkInsertDocuments, String bulkInsertUri)
+			List<BulkInsertDocuments> allBulkInsertDocuments, InetSocketAddress databaseAddress,
+			String bulkInsertPath)
 			throws BenchmarkException {
 		try {
 			CountDownLatch countDownLatch = new CountDownLatch(numConnections);
-			
+
 			clientBootstrap = new ClientBootstrap(
 					new NioClientSocketChannelFactory(
 						Executors.newCachedThreadPool(),
 						Executors.newCachedThreadPool()));
+			
 			BulkInsertPipeline bulkInsertPipeline = new BulkInsertPipeline(
-					allBulkInsertDocuments, bulkInsertUri, PrintResponseHandler.INSTANCE, countDownLatch);
+					allBulkInsertDocuments, bulkInsertPath, PrintResponseHandler.INSTANCE, countDownLatch);
 			clientBootstrap.setPipelineFactory(bulkInsertPipeline);
 			
-			URI uri;
-			try {
-				uri = new URI(bulkInsertUri);
-			} catch (URISyntaxException e) {
-				throw new BenchmarkException(e);
-			}
-			String host = uri.getHost();
-			int port = uri.getPort();
-			InetSocketAddress address = new InetSocketAddress(host, port);
 			for (int i = 0; i < numConnections; ++i) {
-				clientBootstrap.connect(address);
+				System.out.println("connecting " + i);
+				clientBootstrap.connect(databaseAddress);
 			}
 			
 			// Wait for all connections to complete their bulk insert operations.
