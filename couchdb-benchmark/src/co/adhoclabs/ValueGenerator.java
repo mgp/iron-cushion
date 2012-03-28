@@ -6,6 +6,32 @@ import java.util.Random;
  * Generates values for documents created by a {@link DocumentSchema}.
  */
 public class ValueGenerator {
+	private int state1;
+	private int state2;
+	private int state3;
+	private int state4;
+	private int state5;
+	
+	private final String[] words;
+	private final WordJoiner wordJoiner;
+
+	private void createWords() {
+		final int wordSizeRange = MAX_WORD_LENGTH - MIN_WORD_LENGTH;
+		final char[] chars = new char[MAX_WORD_LENGTH];
+		int endIndex = 0;
+		for (int i = 0; i < NUM_WORDS; ++i) {
+			int wordLength = MIN_WORD_LENGTH + nextInt(wordSizeRange);
+			System.out.println("wordLength=" + wordLength);
+			while (endIndex < wordLength) {
+				chars[endIndex] = ALPHABET.charAt(nextInt(ALPHABET_SIZE));
+				endIndex++;
+			}
+
+			words[i] = new String(chars, 0, endIndex);
+			endIndex = 0;
+		}
+	}
+	
 	/**
 	 * Seeds this value generator from the given values.
 	 */
@@ -16,7 +42,8 @@ public class ValueGenerator {
 		this.state3 = state3;
 		this.state4 = state4;
 		this.state5 = state5;
-
+		words = new String[NUM_WORDS];
+		createWords();
 		wordJoiner = new WordJoiner();
 	}
 
@@ -27,13 +54,6 @@ public class ValueGenerator {
 		this(rng.nextInt(), rng.nextInt(), rng.nextInt(), rng.nextInt(), rng
 				.nextInt());
 	}
-
-	private int state1;
-	private int state2;
-	private int state3;
-	private int state4;
-	private int state5;
-	private final WordJoiner wordJoiner;
 
 	private int next(int bits) {
 		int t = (state1 ^ (state1 >> 7));
@@ -98,7 +118,7 @@ public class ValueGenerator {
 		int numWords = 1 + nextInt(4);
 		for (int i = 0; i < numWords; ++i) {
 			int wordIndex = nextInt(NUM_WORDS);
-			String word = WORDS[wordIndex];
+			String word = words[wordIndex];
 			wordJoiner.appendWord(word);
 		}
 		return wordJoiner.toString();
@@ -107,10 +127,9 @@ public class ValueGenerator {
 	private static final String ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?";
 	private static final int ALPHABET_SIZE = ALPHABET.length();
 	private static final int NUM_WORDS = 4096;
-	private static final String[] WORDS = new String[NUM_WORDS];
 	private static final int MIN_WORD_LENGTH = 3;
 	private static final int MAX_WORD_LENGTH = 16;
-
+	
 	/**
 	 * A class that joins words together to create strings returned by
 	 * {@link ValueGenerator#nextString()}.
@@ -139,24 +158,6 @@ public class ValueGenerator {
 
 		public String toString() {
 			return new String(chars, 0, nextIndex);
-		}
-	}
-
-	/**
-	 * Fills the {@link ValueGenerator#WORDS} array.
-	 */
-	{
-		final int wordSizeRange = MAX_WORD_LENGTH - MIN_WORD_LENGTH;
-		final char[] chars = new char[MAX_WORD_LENGTH];
-		int nextIndex = 0;
-		for (int i = 0; i < NUM_WORDS; ++i) {
-			int wordLength = MIN_WORD_LENGTH + nextInt(wordSizeRange);
-			for (int j = 0; j < wordLength; ++j) {
-				chars[j] = ALPHABET.charAt(nextInt(ALPHABET_SIZE));
-			}
-
-			WORDS[i] = new String(chars, 0, nextIndex);
-			nextIndex = 0;
 		}
 	}
 }

@@ -25,8 +25,9 @@ import org.xml.sax.SAXException;
 public class DocumentSchema {
 	private static abstract class Tag {
 		public enum Type {
-			DICTIONARY,
+			OBJECT,
 			ARRAY,
+			STRING,
 			BOOLEAN,
 			INTEGER,
 			FLOAT
@@ -44,27 +45,27 @@ public class DocumentSchema {
 	}
 	
 	/**
-	 * A {@code <dictionary>} tag.
+	 * A {@code <object>} tag.
 	 */
-	private static final class DictionaryTag extends Tag {
+	private static final class ObjectTag extends Tag {
 		private static final class Entry {
-			private final String keyName;
+			private final String name;
 			private final Tag value;
 			
-			private Entry(String keyName, Tag value) {
-				this.keyName = keyName;
+			private Entry(String name, Tag value) {
+				this.name = name;
 				this.value = value;
 			}
 		}
 		
 		private final List<Entry> entries;
 		
-		private DictionaryTag(List<Entry> entries) {
+		private ObjectTag(List<Entry> entries) {
 			this.entries = entries;
 		}
 		
 		public Type getType() {
-			return Type.DICTIONARY;
+			return Type.OBJECT;
 		}
 		
 		public void toString(StringBuilder sb) {
@@ -72,7 +73,7 @@ public class DocumentSchema {
 			int index = 0;
 			final int lastIndex = entries.size() - 1;
 			for (Entry entry : entries) {
-				sb.append(entry.keyName).append(": ");
+				sb.append(entry.name).append(": ");
 				entry.value.toString(sb);
 				if (index++ < lastIndex) {
 					sb.append(", ");
@@ -107,6 +108,21 @@ public class DocumentSchema {
 				}
 			}
 			sb.append("]");
+		}
+	}
+	
+	/**
+	 * A {@code <string>} tag.
+	 */
+	private static final class StringTag extends Tag {
+		private static final StringTag INSTANCE = new StringTag();
+		
+		public Type getType() {
+			return Type.STRING;
+		}
+		
+		public void toString(StringBuilder sb) {
+			sb.append("string");
 		}
 	}
 	
@@ -165,11 +181,11 @@ public class DocumentSchema {
 	}
 
 	@SuppressWarnings("unchecked")
-	private final JSONObject getDictionary(DictionaryTag tag, ValueGenerator generator) {
+	private final JSONObject getObject(ObjectTag tag, ValueGenerator generator) {
 		JSONObject object = new JSONObject();
-		for (DictionaryTag.Entry entry : tag.entries) {
+		for (ObjectTag.Entry entry : tag.entries) {
 			Object value = getObject(entry.value, generator);
-			object.put(entry.keyName, value);
+			object.put(entry.name, value);
 		}
 		return object;
 	}
@@ -178,8 +194,10 @@ public class DocumentSchema {
 		switch (tag.getType()) {
 		case ARRAY:
 			return getArray((ArrayTag) tag, generator);
-		case DICTIONARY:
-			return getDictionary((DictionaryTag) tag, generator);
+		case OBJECT:
+			return getObject((ObjectTag) tag, generator);
+		case STRING:
+			return generator.nextString();
 		case BOOLEAN:
 			return generator.nextBoolean();
 		case INTEGER:
@@ -192,17 +210,19 @@ public class DocumentSchema {
 		return null;
 	}
 	
-	private final DictionaryTag root;
+	private final ObjectTag root;
 	
-	private DocumentSchema(DictionaryTag root) {
+	private DocumentSchema(ObjectTag root) {
 		this.root = root;
 	}
 	
 	private static Tag parseTag(Element element) {
 		if (element.getTagName().equals("array")) {
 			return parseArrayTag(element);
-		} else if (element.getTagName().equals("dictionary")) {
-			return parseDictionaryTag(element);
+		} else if (element.getTagName().equals("object")) {
+			return parseObjectTag(element);
+		} else if (element.getTagName().equals("string")) {
+			return StringTag.INSTANCE;
 		} else if (element.getTagName().equals("integer")) {
 			return IntegerTag.INSTANCE;
 		} else if (element.getTagName().equals("float")) {
@@ -232,16 +252,16 @@ public class DocumentSchema {
 		return new ArrayTag(elements);
 	}
 	
-	private static DictionaryTag.Entry parseDictionaryEntryTag(Element element) {
-		String keyName = null;
+	private static ObjectTag.Entry parseObjectEntryTag(Element element) {
+		String name = null;
 		Tag value = null;
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); ++i) {
 			Node childNode = childNodes.item(i);
 			if (childNode instanceof Element) {
 				Element childNodeElement = (Element) childNode;
-				if (childNodeElement.getTagName().equals("keyName")) {
-					keyName = childNodeElement.getChildNodes().item(0).getNodeValue();
+				if (childNodeElement.getTagName().equals("name")) {
+					name = childNodeElement.getChildNodes().item(0).getNodeValue();
 				} else if (childNodeElement.getTagName().equals("value")) {
 					NodeList valueChildNodes = childNodeElement.getChildNodes();
 					for (int j = 0; j < valueChildNodes.getLength(); ++j) {
@@ -253,27 +273,27 @@ public class DocumentSchema {
 				}
 			}
 		}
-		return new DictionaryTag.Entry(keyName, value);
+		return new ObjectTag.Entry(name, value);
 	}
 	
-	private static DictionaryTag parseDictionaryTag(Element element) {
-		List<DictionaryTag.Entry> entries = new LinkedList<DocumentSchema.DictionaryTag.Entry>();
+	private static ObjectTag parseObjectTag(Element element) {
+		List<ObjectTag.Entry> entries = new LinkedList<DocumentSchema.ObjectTag.Entry>();
 		NodeList childNodes = element.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); ++i) {
 			// Each child node is an <entry> element.
 			Node childNode = childNodes.item(i);
 			if (childNode instanceof Element) {
 				Element entryElement = (Element) childNode;
-				entries.add(parseDictionaryEntryTag(entryElement));
+				entries.add(parseObjectEntryTag(entryElement));
 			}
 		}
-		return new DictionaryTag(entries);
+		return new ObjectTag(entries);
 		
 	}
 	
-	private static DictionaryTag parseDocument(Document document) {
+	private static ObjectTag parseDocument(Document document) {
 		Element root = document.getDocumentElement();
-		return parseDictionaryTag(root);
+		return parseObjectTag(root);
 	}
 	
 	/**
@@ -288,7 +308,7 @@ public class DocumentSchema {
 		try {
 			builder = builderFactory.newDocumentBuilder();
 			Document document = builder.parse(schemaFile);
-			DictionaryTag root = parseDocument(document);
+			ObjectTag root = parseDocument(document);
 			return new DocumentSchema(root);
 		} catch (ParserConfigurationException e) {
 			throw new BenchmarkException(e);
@@ -306,7 +326,7 @@ public class DocumentSchema {
 	 * @return the JSON for the new document
 	 */
 	public JSONObject getNewDocument(ValueGenerator generator) {
-		return getDictionary(root, generator);
+		return getObject(root, generator);
 	}
 	
 	public String toString() {

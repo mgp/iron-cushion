@@ -1,10 +1,10 @@
-<dictionary>
+<object>
   <entry>
-    <keyName>dict1</keyName>
+    <name>dict1</name>
     <value>
-      <dictionary>
+      <object>
         <entry>
-          <keyName>array2</keyName>
+          <name>array2</name>
           <value>
             <array>
             </array>
@@ -12,24 +12,24 @@
         </entry>
 
         <entry>
-          <keyName>dict2</keyName>
+          <name>dict2</name>
           <value>
-            <dictionary>
+            <object>
               <entry>
-                <keyName>boolean2</keyName>
+                <name>boolean2</name>
                 <value>
                   <boolean />
                 </value>
               </entry>
-            </dictionary>
+            </object>
           </value>
         </entry>
-      </dictionary>
+      </object>
     </value>
   </entry>
 
   <entry>
-    <keyName>array1</keyName>
+    <name>array1</name>
     <value>
       <array>
         <element>
@@ -45,8 +45,8 @@
         </element>
         
         <element>
-          <dictionary>
-          </dictionary>
+          <object>
+          </object>
         </element>
 
         <element>
@@ -57,17 +57,24 @@
   </entry>
 
   <entry>
-    <keyName>integer1</keyName>
+    <name>string1</name>
+    <value>
+      <string />
+    </value>
+  </entry>
+
+  <entry>
+    <name>integer1</name>
     <value>
       <integer />
     </value>
   </entry>
 
   <entry>
-    <keyName>boolean1</keyName>
+    <name>boolean1</name>
     <value>
       <boolean />
     </value>
   </entry>
-</dictionary>
+</object>
 
