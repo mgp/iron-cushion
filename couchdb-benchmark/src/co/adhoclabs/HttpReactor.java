@@ -36,7 +36,7 @@ import org.jboss.netty.util.CharsetUtil;
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public class HttpReactor {
-	private final ClientBootstrap clientBootstrap;
+	private final int numConnections;
 	
 	/**
 	 * Interface for a consumer of HTTP responses.
@@ -221,14 +221,16 @@ public class HttpReactor {
 		}
 	}
 	
-	public HttpReactor(int numConnections,
-			List<BulkInsertDocuments> allBulkInsertDocuments, InetSocketAddress databaseAddress,
-			String bulkInsertPath)
-			throws BenchmarkException {
+	public HttpReactor(int numConnections) {
+		this.numConnections = numConnections;
+	}
+	
+	public void performBulkInserts(List<BulkInsertDocuments> allBulkInsertDocuments,
+			InetSocketAddress databaseAddress, String bulkInsertPath) throws BenchmarkException {
 		try {
 			CountDownLatch countDownLatch = new CountDownLatch(numConnections);
 
-			clientBootstrap = new ClientBootstrap(
+			ClientBootstrap clientBootstrap = new ClientBootstrap(
 					new NioClientSocketChannelFactory(
 						Executors.newCachedThreadPool(),
 						Executors.newCachedThreadPool()));
@@ -248,9 +250,5 @@ public class HttpReactor {
 		} catch (InterruptedException e) {
 			throw new BenchmarkException(e);
 		}
-	}
-	
-	public void performBulkInserts() {
-		// TODO
 	}
 }

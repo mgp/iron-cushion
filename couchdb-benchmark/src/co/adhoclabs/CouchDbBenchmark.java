@@ -48,8 +48,8 @@ public class CouchDbBenchmark {
 		String bulkInsertPath = sb.toString();
 		
 		// Perform the bulk insert operations.
-		HttpReactor httpReactor = new HttpReactor(
-				parsedArguments.numConnections, allBulkInsertDocuments, databaseAddress, bulkInsertPath);
+		HttpReactor httpReactor = new HttpReactor(parsedArguments.numConnections);
+		httpReactor.performBulkInserts(allBulkInsertDocuments, databaseAddress, bulkInsertPath);
 
 		/*
 		httpReactor.performBulkInserts();
