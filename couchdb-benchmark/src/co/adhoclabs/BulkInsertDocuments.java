@@ -28,16 +28,14 @@ public class BulkInsertDocuments {
 			JSONArray documents = new JSONArray(numDocumentsPerInsert);
 			for (int j = 0; j < numDocumentsPerInsert; ++j) {
 				JSONObject document = schema.getNewDocument(valueGenerator);
-				// document.put("_id", "abc" + String.valueOf(startId++));
+				document.put("_id", String.valueOf(startId++));
 				documents.add(document);
 			}
 
 			JSONObject json = new JSONObject();
 			json.put("docs", documents);
-			System.out.println("sending: **" + json.toString() + "**");
 			ChannelBuffer insertBuffer = ChannelBuffers.copiedBuffer(
 					json.toString(), CharsetUtil.UTF_8);
-			System.out.println("copy: **" + insertBuffer.toString(CharsetUtil.UTF_8) + "**");
 			insertBuffers.add(insertBuffer);
 		}
 	}

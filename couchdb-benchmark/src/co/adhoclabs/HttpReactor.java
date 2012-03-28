@@ -3,12 +3,14 @@ package co.adhoclabs;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
@@ -126,12 +128,13 @@ public class HttpReactor {
 			// Assign the headers.
 			HttpRequest request = new DefaultHttpRequest(
 					HttpVersion.HTTP_1_1, HttpMethod.POST, bulkInsertPath);
-			System.out.println("bulkInsertPath path=" + bulkInsertPath);
+			ChannelBuffer insertBuffer = documents.getBuffer(insertOperationsCompleted);
+			// Assign the headers.
 			request.setHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 			request.setHeader(HttpHeaders.Names.ACCEPT_ENCODING, HttpHeaders.Values.GZIP);
 			request.setHeader(HttpHeaders.Names.CONTENT_TYPE, "application/json");
+			request.setHeader(HttpHeaders.Names.CONTENT_LENGTH, insertBuffer.readableBytes());
 			// Assign the body.
-			ChannelBuffer insertBuffer = documents.getBuffer(insertOperationsCompleted);
 			request.setContent(insertBuffer);
 			
 			channel.write(request);
@@ -161,9 +164,8 @@ public class HttpReactor {
 			if (!readingChunks) {
 				HttpResponse response = (HttpResponse) e.getMessage();
 				responseHandler.setStatusCode(response.getStatus());
-				System.out.println("BODY=" + response.getContent().toString(CharsetUtil.UTF_8));
 				
-				if (!response.isChunked()) {
+				if (response.isChunked()) {
 					readingChunks = true;
 				} else {
 					ChannelBuffer content = response.getContent();
@@ -218,8 +220,9 @@ public class HttpReactor {
 			connectionNum++;
 			return Channels.pipeline(
 					new HttpClientCodec(),
-					new HttpContentDecompressor(),
-					new BulkInsertHandler(documents, bulkInsertPath, responseHandler, countDownLatch));
+					// new HttpContentDecompressor(),
+					new BulkInsertHandler(documents, bulkInsertPath, responseHandler, countDownLatch)
+					);
 		}
 	}
 	
@@ -236,11 +239,10 @@ public class HttpReactor {
 						Executors.newCachedThreadPool()));
 			
 			BulkInsertPipeline bulkInsertPipeline = new BulkInsertPipeline(
-					allBulkInsertDocuments, bulkInsertPath, PrintResponseHandler.INSTANCE, countDownLatch);
+					allBulkInsertDocuments, bulkInsertPath, NullResponseHandler.INSTANCE, countDownLatch);
 			clientBootstrap.setPipelineFactory(bulkInsertPipeline);
 			
 			for (int i = 0; i < numConnections; ++i) {
-				System.out.println("connecting " + i);
 				clientBootstrap.connect(databaseAddress);
 			}
 			
