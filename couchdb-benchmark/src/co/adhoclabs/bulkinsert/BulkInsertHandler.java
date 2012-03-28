@@ -34,6 +34,7 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 	private final BulkInsertConnectionTimers connectionTimers;
 	private final BulkInsertDocuments documents;
 	private final String bulkInsertPath;
+	private final SendDataChannelFuture sendDataChannelFuture;
 	
 	private int insertOperationsCompleted;
 	private boolean readingChunks;
@@ -46,10 +47,24 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 		this.connectionTimers = connectionTimers;
 		this.documents = documents;
 		this.bulkInsertPath = bulkInsertPath;
+		this.sendDataChannelFuture = new SendDataChannelFuture();
 		
 		this.insertOperationsCompleted = 0;
 	}
 
+	/**
+	 * The {@link ChannelFutureListener} called after a bulk insert is sent.
+	 */
+	private final class SendDataChannelFuture implements ChannelFutureListener {
+		@Override
+		public void operationComplete(ChannelFuture channelFuture) throws Exception {
+			// Guard against starting RECEIVE_DATA before this listener runs. 
+			if (connectionTimers.getRunningConnectionTimer() == RunningConnectionTimer.SEND_DATA) {
+				connectionTimers.startRemoteProcessing();
+			}
+		}
+	}
+	
 	private void writeNextBulkInsertOrClose(Channel channel) {
 		if (insertOperationsCompleted < documents.size()) {
 			// Perform the next bulk insert operation.
@@ -61,14 +76,13 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 	}
 	
 	private void writeNextBulkInsert(Channel channel) {
-		// Assign the headers.
+		connectionTimers.startLocalProcessing();
 		HttpRequest request = new DefaultHttpRequest(
 				HttpVersion.HTTP_1_1, HttpMethod.POST, bulkInsertPath);
-		connectionTimers.startLocalProcessing();
 		ChannelBuffer insertBuffer = documents.getBuffer(insertOperationsCompleted);
 		// Assign the headers.
 		request.setHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-		request.setHeader(HttpHeaders.Names.ACCEPT_ENCODING, HttpHeaders.Values.GZIP);
+		// request.setHeader(HttpHeaders.Names.ACCEPT_ENCODING, HttpHeaders.Values.GZIP);
 		request.setHeader(HttpHeaders.Names.CONTENT_TYPE, "application/json");
 		request.setHeader(HttpHeaders.Names.CONTENT_LENGTH, insertBuffer.readableBytes());
 		// Assign the body.
@@ -76,15 +90,7 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 		
 		connectionTimers.startSendData();
 		ChannelFuture channelFuture = channel.write(request);
-		channelFuture.addListener(new ChannelFutureListener() {
-			@Override
-			public void operationComplete(ChannelFuture channelFuture) throws Exception {
-				// Guard against starting RECEIVE_DATA before this listener runs. 
-				if (connectionTimers.getRunningConnectionTimer() == RunningConnectionTimer.SEND_DATA) {
-					connectionTimers.startRemoteProcessing();
-				}
-			}
-		});
+		channelFuture.addListener(sendDataChannelFuture);
 		insertOperationsCompleted++;
 	}
 	
