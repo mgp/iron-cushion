@@ -148,7 +148,7 @@ The following schema, found in file `xxx/data/example-schema`:
     </value>
   </entry>
 
-  <!-- "array1": (array value)
+  <!-- "array1": (array value) -->
   <entry>
     <name>array1</name>
     <value>
@@ -188,7 +188,7 @@ The following schema, found in file `xxx/data/example-schema`:
     </value>
   </entry>
 
-  <!-- "integer1": (integer value)
+  <!-- "integer1": (integer value) -->
   <entry>
     <name>integer1</name>
     <value>
@@ -196,7 +196,7 @@ The following schema, found in file `xxx/data/example-schema`:
     </value>
   </entry>
 
-  <!-- "boolean1": (boolean value)
+  <!-- "boolean1": (boolean value) -->
   <entry>
     <name>boolean1</name>
     <value>
