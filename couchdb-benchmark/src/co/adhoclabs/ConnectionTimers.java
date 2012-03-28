@@ -97,6 +97,9 @@ public class ConnectionTimers {
 	 * Starts the timer for local processing.
 	 */
 	public void startLocalProcessing() {
+		if (runningTimer == RunningConnectionTimer.LOCAL_PROCESSING) {
+			return;
+		}
 		stop();
 		localProcessingTimer.start();
 		runningTimer = RunningConnectionTimer.LOCAL_PROCESSING;
@@ -106,6 +109,9 @@ public class ConnectionTimers {
 	 * Starts the timer for sending data.
 	 */
 	public void startSendData() {
+		if (runningTimer == RunningConnectionTimer.SEND_DATA) {
+			return;
+		}
 		stop();
 		sendDataTimer.start();
 		runningTimer = RunningConnectionTimer.SEND_DATA;
@@ -115,6 +121,9 @@ public class ConnectionTimers {
 	 * Starts the timer for remote processing.
 	 */
 	public void startRemoteProcessing() {
+		if (runningTimer == RunningConnectionTimer.REMOTE_PROCESSING) {
+			return;
+		}
 		stop();
 		remoteProcessingTimer.start();
 		runningTimer = RunningConnectionTimer.REMOTE_PROCESSING;
@@ -124,6 +133,9 @@ public class ConnectionTimers {
 	 * Starts the timer for receiving data.
 	 */
 	public void startReceiveData() {
+		if (runningTimer == RunningConnectionTimer.RECEIVE_DATA) {
+			return;
+		}
 		stop();
 		receiveDataTimer.start();
 		runningTimer = RunningConnectionTimer.RECEIVE_DATA;

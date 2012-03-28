@@ -1,6 +1,7 @@
 package co.adhoclabs;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -29,6 +30,9 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.util.CharsetUtil;
+
+import co.adhoclabs.ConnectionTimers.ConnectionTimes;
+import co.adhoclabs.ConnectionTimers.RunningConnectionTimer;
 
 /**
  * The networking engine that asynchronously executes HTTP requests.
@@ -90,6 +94,7 @@ public class HttpReactor {
 	}
 	
 	private static final class BulkInsertHandler extends SimpleChannelUpstreamHandler {
+		private final ConnectionTimers connectionTimers;
 		private final BulkInsertDocuments documents;
 		private final String bulkInsertPath;
 		private final ResponseHandler responseHandler;
@@ -98,9 +103,10 @@ public class HttpReactor {
 		private int insertOperationsCompleted;
 		private boolean readingChunks;
 		
-		private BulkInsertHandler(
+		private BulkInsertHandler(ConnectionTimers connectionTimers,
 				BulkInsertDocuments documents, String bulkInsertPath, ResponseHandler responseHandler,
 				CountDownLatch countDownLatch) {
+			this.connectionTimers = connectionTimers;
 			this.documents = documents;
 			this.bulkInsertPath = bulkInsertPath;
 			this.responseHandler = responseHandler;
@@ -123,6 +129,7 @@ public class HttpReactor {
 			// Assign the headers.
 			HttpRequest request = new DefaultHttpRequest(
 					HttpVersion.HTTP_1_1, HttpMethod.POST, bulkInsertPath);
+			connectionTimers.startLocalProcessing();
 			ChannelBuffer insertBuffer = documents.getBuffer(insertOperationsCompleted);
 			// Assign the headers.
 			request.setHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
@@ -132,11 +139,23 @@ public class HttpReactor {
 			// Assign the body.
 			request.setContent(insertBuffer);
 			
-			channel.write(request);
+			connectionTimers.startSendData();
+			ChannelFuture channelFuture = channel.write(request);
+			channelFuture.addListener(new ChannelFutureListener() {
+				@Override
+				public void operationComplete(ChannelFuture channelFuture) throws Exception {
+					// Guard against starting RECEIVE_DATA before this listener runs. 
+					if (connectionTimers.getRunningConnectionTimer() == RunningConnectionTimer.SEND_DATA) {
+						connectionTimers.startRemoteProcessing();
+					}
+				}
+			});
 			insertOperationsCompleted++;
 		}
 		
 		private void close(Channel channel) {
+			connectionTimers.stop();
+			
 			ChannelFuture channelFuture = channel.close();
 			channelFuture.addListener(new ChannelFutureListener() {
 				@Override
@@ -155,6 +174,8 @@ public class HttpReactor {
 		
 		@Override
 		public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+			connectionTimers.startReceiveData();
+			
 			Channel channel = e.getChannel();
 			if (!readingChunks) {
 				HttpResponse response = (HttpResponse) e.getMessage();
@@ -191,6 +212,7 @@ public class HttpReactor {
 	}
 	
 	private static final class BulkInsertPipeline implements ChannelPipelineFactory {
+		private final List<ConnectionTimers> allConnectionTimers;
 		private final List<BulkInsertDocuments> allBulkInsertDocuments;
 		private final String bulkInsertPath;
 		private final ResponseHandler responseHandler;
@@ -198,9 +220,13 @@ public class HttpReactor {
 		
 		private int connectionNum;
 		
-		private BulkInsertPipeline(
+		private BulkInsertPipeline(int numConnections,
 				List<BulkInsertDocuments> allBulkInsertDocuments, String bulkInsertPath,
 				ResponseHandler responseHandler, CountDownLatch countDownLatch) {
+			allConnectionTimers = new ArrayList<ConnectionTimers>(numConnections);
+			for (int i = 0; i < numConnections; ++i) {
+				allConnectionTimers.add(new ConnectionTimers());
+			}
 			this.allBulkInsertDocuments = allBulkInsertDocuments;
 			this.bulkInsertPath = bulkInsertPath;
 			this.responseHandler = responseHandler;
@@ -211,12 +237,13 @@ public class HttpReactor {
 		
 		@Override
 		public ChannelPipeline getPipeline() throws Exception {
+			ConnectionTimers connectionTimers = allConnectionTimers.get(connectionNum);
 			BulkInsertDocuments documents = allBulkInsertDocuments.get(connectionNum);
 			connectionNum++;
 			return Channels.pipeline(
 					new HttpClientCodec(),
 					// new HttpContentDecompressor(),
-					new BulkInsertHandler(documents, bulkInsertPath, responseHandler, countDownLatch)
+					new BulkInsertHandler(connectionTimers, documents, bulkInsertPath, responseHandler, countDownLatch)
 					);
 		}
 	}
@@ -225,7 +252,7 @@ public class HttpReactor {
 		this.numConnections = numConnections;
 	}
 	
-	public void performBulkInserts(List<BulkInsertDocuments> allBulkInsertDocuments,
+	public List<ConnectionTimes> performBulkInserts(List<BulkInsertDocuments> allBulkInsertDocuments,
 			InetSocketAddress databaseAddress, String bulkInsertPath) throws BenchmarkException {
 		try {
 			CountDownLatch countDownLatch = new CountDownLatch(numConnections);
@@ -235,7 +262,7 @@ public class HttpReactor {
 						Executors.newCachedThreadPool(),
 						Executors.newCachedThreadPool()));
 			
-			BulkInsertPipeline bulkInsertPipeline = new BulkInsertPipeline(
+			BulkInsertPipeline bulkInsertPipeline = new BulkInsertPipeline(numConnections,
 					allBulkInsertDocuments, bulkInsertPath, NullResponseHandler.INSTANCE, countDownLatch);
 			clientBootstrap.setPipelineFactory(bulkInsertPipeline);
 			
@@ -247,6 +274,12 @@ public class HttpReactor {
 			countDownLatch.await();
 			// Shut down executor threads to exit.
 			clientBootstrap.releaseExternalResources();
+			
+			List<ConnectionTimes> allConnectionTimes = new ArrayList<ConnectionTimes>(numConnections);
+			for (ConnectionTimers connectionTimers : bulkInsertPipeline.allConnectionTimers) {
+				allConnectionTimes.add(connectionTimers.getConnectionTimes());
+			}
+			return allConnectionTimes;
 		} catch (InterruptedException e) {
 			throw new BenchmarkException(e);
 		}
