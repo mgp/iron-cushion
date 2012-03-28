@@ -37,7 +37,8 @@ public class DocumentSchema {
 			STRING,
 			BOOLEAN,
 			INTEGER,
-			FLOAT
+			FLOAT,
+			NULL
 		}
 		
 		public abstract Type getType();
@@ -52,7 +53,7 @@ public class DocumentSchema {
 	}
 	
 	/**
-	 * A {@code <object>} tag.
+	 * A tag for {@link JSONObject}.
 	 */
 	private static final class ObjectTag extends Tag {
 		private static final class Entry {
@@ -91,7 +92,7 @@ public class DocumentSchema {
 	}
 	
 	/**
-	 * A {@code <array>} tag.
+	 * A tag for {@link JSONArray}.
 	 */
 	private static final class ArrayTag extends Tag {
 		private final List<Tag> elements;
@@ -119,7 +120,7 @@ public class DocumentSchema {
 	}
 	
 	/**
-	 * A {@code <string>} tag.
+	 * A tag for {@link String}.
 	 */
 	private static final class StringTag extends Tag {
 		private static final StringTag INSTANCE = new StringTag();
@@ -134,7 +135,7 @@ public class DocumentSchema {
 	}
 	
 	/**
-	 * A {@code <boolean>} tag.
+	 * A tag for {@link Boolean}.
 	 */
 	private static final class BooleanTag extends Tag {
 		private static final BooleanTag INSTANCE = new BooleanTag();
@@ -149,7 +150,7 @@ public class DocumentSchema {
 	}
 	
 	/**
-	 * A {@code <integer>} tag.
+	 * A tag for {@link Integer}.
 	 */
 	private static final class IntegerTag extends Tag {
 		private static final IntegerTag INSTANCE = new IntegerTag();
@@ -164,7 +165,7 @@ public class DocumentSchema {
 	}
 	
 	/**
-	 * A {@code <float>} tag.
+	 * A tag for {@link Float}.
 	 */
 	private static final class FloatTag extends Tag {
 		private static final FloatTag INSTANCE = new FloatTag();
@@ -175,6 +176,21 @@ public class DocumentSchema {
 		
 		public void toString(StringBuilder sb) {
 			sb.append("float");
+		}
+	}
+	
+	/**
+	 * A tag for {@code null}. 
+	 */
+	private static final class NullTag extends Tag {
+		private static final NullTag INSTANCE = new NullTag();
+		
+		public Type getType() {
+			return Type.NULL;
+		}
+		
+		public void toString(StringBuilder sb ) {
+			sb.append("null");
 		}
 	}
 	
@@ -211,6 +227,8 @@ public class DocumentSchema {
 			return generator.nextInt();
 		case FLOAT:
 			return generator.nextFloat();
+		case NULL:
+			return null;
 		default:
 			break;
 		}
@@ -240,6 +258,8 @@ public class DocumentSchema {
 				return FloatTag.INSTANCE;
 			} else if (element.getTagName().equals("boolean")) {
 				return BooleanTag.INSTANCE;
+			} else if (element.getTagName().equals("null")) {
+				return NullTag.INSTANCE;
 			}
 			return null;
 		}
@@ -318,7 +338,9 @@ public class DocumentSchema {
 	 */
 	private static final class JsonParser {
 		private static Tag parseTag(Object object) {
-			if (object instanceof JSONObject) {
+			if (object == null) {
+				return NullTag.INSTANCE;
+			} else if (object instanceof JSONObject) {
 				JSONObject jsonObject = (JSONObject) object;
 				return parseObjectTag(jsonObject);
 			} else if (object instanceof JSONArray) {
