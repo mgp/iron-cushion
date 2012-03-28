@@ -34,46 +34,96 @@ Note that if `delete_weight` is larger than `create_weight`, documents from the 
 
 ## Document Generation
 
+The `document_schema_file` command line flag specifies an XML file that defines a schema for all documents inserted into the database. XML was chosen so that future versions of XXX can add attributes to these tags (e.g. minimum and maximum values for `<integer />`).
 
+There are six principal tags, each of which are described below: `<object>`, `<array>`, `<string />`, `<integer />`, `<float />`, and `<boolean />`. The outer-most tag must be `<object>`.
 
-**Dictionary**
+### Tags
+
+**Object**
+
+The `<object>` tag translates to a JSON object containing key-value pairs. The `<object>` tag encloses 0 or more `<entry>` tags to define key-value pairs. The name of the key, which must be a string, is enclosed by the `<keyName>` tag. The type of the value is enclosed by the `<value>` tag.
 
 ```
-<dict>
-  <key>
-  </key>
-  <value>
-  </value>
-</dict>
+<object>
+  <!-- first key-value pair -->
+  <entry>
+    <keyName>
+      ...
+    </keyName>
+    <value>
+      ...
+    </value>
+  </entry>
+  <!-- second key-value pair -->
+  <entry>
+    <keyName>
+      ...
+    </keyName>
+    <value>
+      ...
+    </value>
+  </entry>
+  <!-- remaining key-value pairs follow -->
+  ...
+</object>
 ```
 
 **Array**
 
+The `<array>` tag translates to an array in JSON. The `<array>` tag encloses 0 or more `<element>` tags to define its elements. The type of each element is enclosed by its `<element>` tag.
+
+
 ```
 <array>
+  <!-- first element -->
   <element>
+    ...
   </element>
+  <!-- second element -->
+  <element>
+    ...
+  </element>
+  <!-- remaining elements follow -->
+  ...
 </array>
 ```
 
 **Integer**
 
+The `<integer />` tag translates to an integer value in JSON.
+
+
 ```
-<integer>
-</integer>
+<integer />
 ```
 
 **Float**
 
+The `<float />` tag translates to a floating point value in JSON.
+
 ```
-<float>
-</float>
+<float />
 ```
 
 **Boolean**
 
+The `<boolean />` tag translates to a boolean value in JSON.
+
+
 ```
-<boolean>
-</boolean>
+<boolean />
 ```
+
+**String**
+
+The `<string />` tag translates to a string in JSON.
+
+### Document Updates
+
+When XXX performs a document update, it randomly chooses TODO.
+
+### Example
+
+TODO.
 
