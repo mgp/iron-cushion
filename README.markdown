@@ -115,10 +115,12 @@ The following schema, found in file `xxx/data/example-schema`:
 
 ```xml
 <object>
+  <!-- "obj1": (object value) -->
   <entry>
-    <name>dict1</name>
+    <name>obj1</name>
     <value>
       <object>
+        <!-- "array2": [] -->
         <entry>
           <name>array2</name>
           <value>
@@ -127,10 +129,12 @@ The following schema, found in file `xxx/data/example-schema`:
           </value>
         </entry>
 
+        <!-- "obj2": (object value) -->
         <entry>
-          <name>dict2</name>
+          <name>obj2</name>
           <value>
             <object>
+              <!-- "boolean2": (boolean value) -->
               <entry>
                 <name>boolean2</name>
                 <value>
@@ -144,10 +148,12 @@ The following schema, found in file `xxx/data/example-schema`:
     </value>
   </entry>
 
+  <!-- "array1": (array value)
   <entry>
     <name>array1</name>
     <value>
       <array>
+        <!-- first element: [(float value), (float value)] -->
         <element>
           <array>
             <element>
@@ -160,11 +166,13 @@ The following schema, found in file `xxx/data/example-schema`:
           </array>
         </element>
         
+        <!-- second element: {} -->
         <element>
           <object>
           </object>
         </element>
 
+        <!-- third element: (boolean value) -->
         <element>
           <boolean />
         </element>
@@ -172,6 +180,7 @@ The following schema, found in file `xxx/data/example-schema`:
     </value>
   </entry>
 
+  <!-- "string1": (string value)
   <entry>
     <name>string1</name>
     <value>
@@ -179,6 +188,7 @@ The following schema, found in file `xxx/data/example-schema`:
     </value>
   </entry>
 
+  <!-- "integer1": (integer value)
   <entry>
     <name>integer1</name>
     <value>
@@ -186,6 +196,7 @@ The following schema, found in file `xxx/data/example-schema`:
     </value>
   </entry>
 
+  <!-- "boolean1": (boolean value)
   <entry>
     <name>boolean1</name>
     <value>
@@ -209,9 +220,9 @@ Can generate the following document:
     true
   ], 
   "boolean1": true, 
-  "dict1": {
+  "obj1": {
     "array2": [], 
-    "dict2": {
+    "obj2": {
       "boolean2": false
     }
   }, 

@@ -1,6 +1,6 @@
 <object>
   <entry>
-    <name>dict1</name>
+    <name>obj1</name>
     <value>
       <object>
         <entry>
@@ -12,7 +12,7 @@
         </entry>
 
         <entry>
-          <name>dict2</name>
+          <name>obj2</name>
           <value>
             <object>
               <entry>
