@@ -9,9 +9,9 @@ The benchmark proceeds in two steps: First, documents are bulk inserted. Second,
 * `database_address`: The address of the database, of the form `http://hostname:port` or `http://ipaddress:port`.
 * `database_name`: The name of the database.
 * `num_connections`: The number of concurrent connections to establish to the database.
-* `document_schema_file`: An XML file describing the schema of documents created during the benchmark. For more details, see "Document Generation" below.
+* `document_schema_file`: An XML file describing the schema of documents created during the benchmark.
 
-Note that while CouchDB is schemaless, the `document_schema_file` allows the user to specify the level of complexity for generated documents.
+Note that while CouchDB is schemaless, the `document_schema_file` allows the user to specify the level of complexity for generated documents. For more details, see "Document Generation" below.
 
 ### Bulk Insert Flags
 
@@ -20,7 +20,7 @@ Note that while CouchDB is schemaless, the `document_schema_file` allows the use
 
 For example, if `num_connections` is `50`, `num_documents_per_bulk_insert` is `2000`, and `num_bulk_insert_operations` is `10`, then after the bulk insert phase there will be 50 x 2,000 x 10 = 1,000,000 documents in the database.
 
-### CRUD Flags:
+### CRUD Flags
 
 * `num_crud_operations`: The number of CRUD operations performed by each connection.
 * `create_weight`: Weight defining the number of create operations relative to other operations.
@@ -44,7 +44,7 @@ There are six principal tags, each of which are described below: `<object>`, `<a
 
 The `<object>` tag translates to a JSON object containing key-value pairs. The `<object>` tag encloses 0 or more `<entry>` tags to define key-value pairs. The name of the key, which must be a string, is enclosed by the `<keyName>` tag. The type of the value is enclosed by the `<value>` tag.
 
-```
+```xml
 <object>
   <!-- first key-value pair -->
   <entry>
@@ -89,41 +89,37 @@ The `<array>` tag translates to an array in JSON. The `<array>` tag encloses 0 o
 </array>
 ```
 
+**String**
+
+The `<string />` tag translates to a string in JSON. The string is between 1 and 5 words in length, where each word is chosen from a dictionary of 32,768 words, each generated from the alphabet `[A-Za-z0-9?!]`.
+
 **Integer**
 
 The `<integer />` tag translates to an integer value in JSON.
-
-
-```
-<integer />
-```
 
 **Float**
 
 The `<float />` tag translates to a floating point value in JSON.
 
-```
-<float />
-```
-
 **Boolean**
 
 The `<boolean />` tag translates to a boolean value in JSON.
 
-
-```
-<boolean />
-```
-
-**String**
-
-The `<string />` tag translates to a string in JSON.
-
 ### Document Updates
 
-When XXX performs a document update, it randomly chooses TODO.
+To update to a document, XXX chooses a random `<entry>` from the top level `<object>` of the original document, generates a new `<value>` for it, and sends the updated document in a `PUT` request.
 
 ### Example
+
+The following schema, found in file `xxx/data/example-schema`:
+
+```
+```
+
+Can generate the following document:
+
+```
+```
 
 TODO.
 
