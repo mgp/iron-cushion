@@ -180,7 +180,7 @@ The following schema, found in file `xxx/data/example-schema`:
     </value>
   </entry>
 
-  <!-- "string1": (string value)
+  <!-- "string1": (string value) -->
   <entry>
     <name>string1</name>
     <value>
