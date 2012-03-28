@@ -6,16 +6,16 @@ package co.adhoclabs;
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public class Timer {
-	private long totalTime;
+	private long totalTimeMillis;
 	private long startTime;
 	
 	public Timer() {
-		totalTime = 0;
+		totalTimeMillis = 0;
 		startTime = 0;
 	}
 	
 	public void reset() {
-		totalTime = 0;
+		totalTimeMillis = 0;
 		startTime = 0;
 	}
 	
@@ -26,10 +26,10 @@ public class Timer {
 	public void stop() {
 		long elapsedTime = System.nanoTime() - startTime;
 		// Convert to milliseconds.
-		totalTime += (elapsedTime / 1000000);
+		totalTimeMillis += (elapsedTime / 1000000);
 	}
 	
 	public long getTotalTimeMillis() {
-		return totalTime;
+		return totalTimeMillis;
 	}
 }
