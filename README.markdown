@@ -42,29 +42,29 @@ There are six principal tags, each of which are described below: `<object>`, `<a
 
 **Object**
 
-The `<object>` tag translates to a JSON object containing key-value pairs. The `<object>` tag encloses 0 or more `<entry>` tags to define key-value pairs. The name of the key, which must be a string, is enclosed by the `<keyName>` tag. The type of the value is enclosed by the `<value>` tag.
+The `<object>` tag translates to a JSON object containing name-value pairs. The `<object>` tag encloses 0 or more `<entry>` tags to define name-value pairs. The name of the value, which must be a string, is enclosed by the `<name>` tag. The type of the value is enclosed by the `<value>` tag.
 
 ```xml
 <object>
-  <!-- first key-value pair -->
+  <!-- first name-value pair -->
   <entry>
-    <keyName>
+    <name>
       ...
-    </keyName>
+    </name>
     <value>
       ...
     </value>
   </entry>
-  <!-- second key-value pair -->
+  <!-- second name-value pair -->
   <entry>
-    <keyName>
+    <name>
       ...
-    </keyName>
+    </name>
     <value>
       ...
     </value>
   </entry>
-  <!-- remaining key-value pairs follow -->
+  <!-- remaining name-value pairs follow -->
   ...
 </object>
 ```
@@ -74,7 +74,7 @@ The `<object>` tag translates to a JSON object containing key-value pairs. The `
 The `<array>` tag translates to an array in JSON. The `<array>` tag encloses 0 or more `<element>` tags to define its elements. The type of each element is enclosed by its `<element>` tag.
 
 
-```
+```xml
 <array>
   <!-- first element -->
   <element>
@@ -113,13 +113,111 @@ To update to a document, XXX chooses a random `<entry>` from the top level `<obj
 
 The following schema, found in file `xxx/data/example-schema`:
 
-```
+```xml
+<object>
+  <entry>
+    <name>dict1</name>
+    <value>
+      <object>
+        <entry>
+          <name>array2</name>
+          <value>
+            <array>
+            </array>
+          </value>
+        </entry>
+
+        <entry>
+          <name>dict2</name>
+          <value>
+            <object>
+              <entry>
+                <name>boolean2</name>
+                <value>
+                  <boolean />
+                </value>
+              </entry>
+            </object>
+          </value>
+        </entry>
+      </object>
+    </value>
+  </entry>
+
+  <entry>
+    <name>array1</name>
+    <value>
+      <array>
+        <element>
+          <array>
+            <element>
+              <float />
+            </element>
+
+            <element>
+              <float />
+            </element>
+          </array>
+        </element>
+        
+        <element>
+          <object>
+          </object>
+        </element>
+
+        <element>
+          <boolean />
+        </element>
+      </array>
+    </value>
+  </entry>
+
+  <entry>
+    <name>string1</name>
+    <value>
+      <string />
+    </value>
+  </entry>
+
+  <entry>
+    <name>integer1</name>
+    <value>
+      <integer />
+    </value>
+  </entry>
+
+  <entry>
+    <name>boolean1</name>
+    <value>
+      <boolean />
+    </value>
+  </entry>
+</object>
+
 ```
 
 Can generate the following document:
 
-```
-```
+```json
+{
+  "array1": [
+    [
+      0.8474894, 
+      0.30425853
+    ], 
+    {}, 
+    true
+  ], 
+  "boolean1": true, 
+  "dict1": {
+    "array2": [], 
+    "dict2": {
+      "boolean2": false
+    }
+  }, 
+  "integer1": 1929847379, 
+  "string1": "928lR8eM7DcBSgR 598A8VxzeFE2 uKTF FqiMEmxdLJmDni"
+}
 
-TODO.
+```
 
