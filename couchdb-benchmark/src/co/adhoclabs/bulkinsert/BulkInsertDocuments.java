@@ -1,4 +1,4 @@
-package co.adhoclabs;
+package co.adhoclabs.bulkinsert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +8,9 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.util.CharsetUtil;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+
+import co.adhoclabs.DocumentSchema;
+import co.adhoclabs.ValueGenerator;
 
 /**
  * Contains the documents to be inserted in bulk by one thread.

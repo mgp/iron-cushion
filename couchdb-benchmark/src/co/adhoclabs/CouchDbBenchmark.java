@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Random;
 
 import co.adhoclabs.ConnectionTimers.ConnectionTimes;
+import co.adhoclabs.bulkinsert.BulkInsertDocuments;
 
 /**
  * Benchmark utility for CouchDB.
