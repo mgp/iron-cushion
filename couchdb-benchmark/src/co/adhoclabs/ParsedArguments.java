@@ -51,10 +51,15 @@ public class ParsedArguments {
 	public final int deleteWeight;
 	
 	/**
-	 * The file containing field names in documents and their respective types,
+	 * The JSON file containing field names in documents and their respective types,
 	 * used for create and update operations.
 	 */
-	public final File documentSchemaFile;
+	public final File jsonDocumentSchemaFile;
+	/**
+	 * The XML file containing field names in documents and their respective types,
+	 * used for create and update operations.
+	 */
+	public final File xmlDocumentSchemaFile;
 	/**
 	 * The file containing view names, used for read operations.
 	 */
@@ -73,7 +78,8 @@ public class ParsedArguments {
 			int readWeight,
 			int updateWeight,
 			int deleteWeight,
-			File documentSchemaFile,
+			File jsonDocumentSchemaFile,
+			File xmlDocumentSchemaFile,
 			File viewsFile) {
 		this.databaseAddress = databaseAddress;
 		this.databaseName = databaseName;
@@ -85,7 +91,8 @@ public class ParsedArguments {
 		this.readWeight = readWeight;
 		this.updateWeight = updateWeight;
 		this.deleteWeight = deleteWeight;
-		this.documentSchemaFile = documentSchemaFile;
+		this.jsonDocumentSchemaFile = jsonDocumentSchemaFile;
+		this.xmlDocumentSchemaFile = xmlDocumentSchemaFile;
 		this.viewsFile = viewsFile;
 	}
 
@@ -102,7 +109,8 @@ public class ParsedArguments {
 	private static final String UPDATE_WEIGHT_PREFIX = "--update_weight=";
 	private static final String DELETE_WEIGHT_PREFIX = "--delete_weight=";
 
-	private static final String DOCUMENT_SCHEMA_FILENAME_PREFIX = "--document_schema_filename=";
+	private static final String JSON_DOCUMENT_SCHEMA_FILENAME_PREFIX = "--json_document_schema_filename=";
+	private static final String XML_DOCUMENT_SCHEMA_FILENAME_PREFIX = "--xml_document_schema_filename=";
 	private static final String VIEWS_FILENAME_PREFIX = "--views_filename=";
 	
 	private static String valueForArgument(String arg, String argumentPrefix) {
@@ -125,7 +133,8 @@ public class ParsedArguments {
 		int readWeight = 1;
 		int updateWeight = 1;
 		int deleteWeight = 1;
-		String documentSchemaFilename = null;
+		String jsonDocumentSchemaFilename = null;
+		String xmlDocumentSchemaFilename = null;
 		String viewsFilename = null;
 		
 		for (String arg : args) {
@@ -149,8 +158,10 @@ public class ParsedArguments {
 				updateWeight = intValueForArgument(arg, UPDATE_WEIGHT_PREFIX);
 			} else if (arg.startsWith(DELETE_WEIGHT_PREFIX)) {
 				deleteWeight = intValueForArgument(arg, DELETE_WEIGHT_PREFIX);
-			} else if (arg.startsWith(DOCUMENT_SCHEMA_FILENAME_PREFIX)) {
-				documentSchemaFilename = valueForArgument(arg, DOCUMENT_SCHEMA_FILENAME_PREFIX);
+			} else if (arg.startsWith(JSON_DOCUMENT_SCHEMA_FILENAME_PREFIX)) {
+				jsonDocumentSchemaFilename = valueForArgument(arg, JSON_DOCUMENT_SCHEMA_FILENAME_PREFIX);
+			} else if (arg.startsWith(XML_DOCUMENT_SCHEMA_FILENAME_PREFIX)) {
+				xmlDocumentSchemaFilename = valueForArgument(arg, XML_DOCUMENT_SCHEMA_FILENAME_PREFIX);
 			} else if (arg.startsWith(VIEWS_FILENAME_PREFIX)) {
 				viewsFilename = valueForArgument(arg, VIEWS_FILENAME_PREFIX);
 			} else {
@@ -160,7 +171,8 @@ public class ParsedArguments {
 		
 		// TODO: validate the args
 		
-		File documentSchemaFile = new File(documentSchemaFilename);
+		File jsonDocumentSchemaFile = new File(jsonDocumentSchemaFilename);
+		File xmlDocumentSchemaFile = new File(xmlDocumentSchemaFilename);
 		File viewsFile = null;	// new File(viewsFilename);
 		
 		return new ParsedArguments(databaseAddress,
@@ -173,7 +185,8 @@ public class ParsedArguments {
 				readWeight,
 				updateWeight,
 				deleteWeight,
-				documentSchemaFile,
+				jsonDocumentSchemaFile,
+				xmlDocumentSchemaFile,
 				viewsFile);
 	}
 }

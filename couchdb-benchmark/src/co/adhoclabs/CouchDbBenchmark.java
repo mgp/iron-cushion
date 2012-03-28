@@ -20,8 +20,12 @@ public class CouchDbBenchmark {
 		ParsedArguments parsedArguments = ParsedArguments.parseArguments(args);
 
 		// Create the document schema.
-		DocumentSchema schema = DocumentSchema.createSchema(
-				parsedArguments.documentSchemaFile);
+		DocumentSchema schema = null;
+		if (parsedArguments.jsonDocumentSchemaFile != null) {
+			schema = DocumentSchema.createSchemaFromJson(parsedArguments.jsonDocumentSchemaFile);
+		} else if (parsedArguments.xmlDocumentSchemaFile != null) {
+			schema = DocumentSchema.createSchemaFromXml(parsedArguments.xmlDocumentSchemaFile);
+		}
 		// Create the documents to bulk insert from the schema.
 		ValueGenerator valueGenerator = new ValueGenerator(new Random(2012));
 		List<BulkInsertDocuments> allBulkInsertDocuments = new ArrayList<BulkInsertDocuments>(

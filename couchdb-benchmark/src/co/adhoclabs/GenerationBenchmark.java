@@ -11,7 +11,7 @@ public class GenerationBenchmark {
 	public static void main(String[] args) throws BenchmarkException {
 		String filename = args[0];
 		File file = new File(filename);
-		DocumentSchema schema = DocumentSchema.createSchema(file);
+		DocumentSchema schema = DocumentSchema.createSchemaFromXml(file);
 		System.out.println("schema=" + schema);
 		Random rng = new Random(2013);
 		ValueGenerator valueGenerator = new ValueGenerator(rng);
