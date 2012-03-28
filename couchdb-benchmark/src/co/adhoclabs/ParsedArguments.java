@@ -130,10 +130,10 @@ public class ParsedArguments {
 		int numDocumentsPerBulkInsert = 0;
 		int numBulkInsertOperations = 0;
 		int numCrudOperations = 0;
-		int createWeight = 1;
-		int readWeight = 1;
-		int updateWeight = 1;
-		int deleteWeight = 1;
+		int createWeight = 0;
+		int readWeight = 0;
+		int updateWeight = 0;
+		int deleteWeight = 0;
 		String jsonDocumentSchemaFilename = null;
 		String xmlDocumentSchemaFilename = null;
 		String viewsFilename = null;
@@ -170,10 +170,62 @@ public class ParsedArguments {
 			}
 		}
 		
-		// TODO: validate the args
+		// Validate the arguments.
+		if ((databaseAddress == null) || databaseAddress.isEmpty()) {
+			throw new IllegalArgumentException("Value --database_address must be provided");
+		}
+		if ((databaseName == null) || databaseName.isEmpty()) {
+			throw new IllegalArgumentException("Value --database_name must be provided");
+		}
+		if (numConnections <= 0) {
+			throw new IllegalArgumentException("Value --num_connections must be > 0");
+		}
+		if (numDocumentsPerBulkInsert < 0) {
+			throw new IllegalArgumentException("Value --num_documents_per_bulk_insert must be >= 0");
+		}
+		if (numBulkInsertOperations < 0) {
+			throw new IllegalArgumentException("Value --num_bulk_insert_operations must be >= 0");
+		}
+		if (numCrudOperations < 0) {
+			throw new IllegalArgumentException("Value --num_crud_operations must be >= 0");
+		}
+		if (createWeight < 0) {
+			throw new IllegalArgumentException("Value --create_weight must be >= 0");
+		}
+		if (readWeight < 0) {
+			throw new IllegalArgumentException("Value --read_weight must be >= 0");
+		}
+		if (updateWeight < 0) {
+			throw new IllegalArgumentException("Value --update_weight must be >= 0");
+		}
+		if (deleteWeight < 0) {
+			throw new IllegalArgumentException("Value --delete_weight must be >= 0");
+		}
+		if (numCrudOperations > 0) {
+			int totalWeight = createWeight + readWeight + updateWeight + deleteWeight;
+			if (totalWeight == 0) {
+				throw new IllegalArgumentException("Sum of weights must be > 0");
+			}
+		}
+		if ((jsonDocumentSchemaFilename == null) == (xmlDocumentSchemaFilename == null)) {
+			throw new IllegalArgumentException(
+					"Either value --json_document_schema_filename or --xml_document_schema_filename must be provided");
+		}
 		
-		File jsonDocumentSchemaFile = new File(jsonDocumentSchemaFilename);
-		File xmlDocumentSchemaFile = new File(xmlDocumentSchemaFilename);
+		File jsonDocumentSchemaFile = null;
+		if (jsonDocumentSchemaFilename != null) {
+			jsonDocumentSchemaFile = new File(jsonDocumentSchemaFilename);
+			if (!jsonDocumentSchemaFile.exists()) {
+				throw new IllegalArgumentException("Filename --json_document_schema_filename does not exist");
+			}
+		}
+		File xmlDocumentSchemaFile = null;
+		if (xmlDocumentSchemaFilename != null) {
+			xmlDocumentSchemaFile = new File(xmlDocumentSchemaFilename);
+			if (!xmlDocumentSchemaFile.exists()) {
+				throw new IllegalArgumentException("Filename --xml_document_schema_filename does not exist");
+			}
+		}
 		File viewsFile = null;	// new File(viewsFilename);
 		
 		return new ParsedArguments(databaseAddress,
