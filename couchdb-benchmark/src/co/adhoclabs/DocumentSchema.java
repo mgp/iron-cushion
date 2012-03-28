@@ -1,9 +1,14 @@
 package co.adhoclabs;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -11,6 +16,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -216,84 +223,148 @@ public class DocumentSchema {
 		this.root = root;
 	}
 	
-	private static Tag parseTag(Element element) {
-		if (element.getTagName().equals("array")) {
-			return parseArrayTag(element);
-		} else if (element.getTagName().equals("object")) {
-			return parseObjectTag(element);
-		} else if (element.getTagName().equals("string")) {
-			return StringTag.INSTANCE;
-		} else if (element.getTagName().equals("integer")) {
-			return IntegerTag.INSTANCE;
-		} else if (element.getTagName().equals("float")) {
-			return FloatTag.INSTANCE;
-		} else if (element.getTagName().equals("boolean")) {
-			return BooleanTag.INSTANCE;
-		}
-		return null;
-	}
-	
-	private static ArrayTag parseArrayTag(Element element) {
-		List<Tag> elements = new LinkedList<DocumentSchema.Tag>();
-		NodeList childNodes = element.getChildNodes();
-		for (int i = 0; i < childNodes.getLength(); ++i) {
-			Node childNode = childNodes.item(i);
-			if (childNode instanceof Element) {
-				Element childNodeElement = (Element) childNode;
-				NodeList elementChildNodes = childNodeElement.getChildNodes();
-				for (int j = 0; j < elementChildNodes.getLength(); ++j) {
-					Node elementChildNode = elementChildNodes.item(j);
-					if (elementChildNode instanceof Element) {
-						elements.add(parseTag((Element) elementChildNode));
-					}
-				}
+	/**
+	 * Private namespace for methods that parse XML.
+	 */
+	private static final class XmlParser {
+		private static Tag parseTag(Element element) {
+			if (element.getTagName().equals("array")) {
+				return parseArrayTag(element);
+			} else if (element.getTagName().equals("object")) {
+				return parseObjectTag(element);
+			} else if (element.getTagName().equals("string")) {
+				return StringTag.INSTANCE;
+			} else if (element.getTagName().equals("integer")) {
+				return IntegerTag.INSTANCE;
+			} else if (element.getTagName().equals("float")) {
+				return FloatTag.INSTANCE;
+			} else if (element.getTagName().equals("boolean")) {
+				return BooleanTag.INSTANCE;
 			}
+			return null;
 		}
-		return new ArrayTag(elements);
-	}
-	
-	private static ObjectTag.Entry parseObjectEntryTag(Element element) {
-		String name = null;
-		Tag value = null;
-		NodeList childNodes = element.getChildNodes();
-		for (int i = 0; i < childNodes.getLength(); ++i) {
-			Node childNode = childNodes.item(i);
-			if (childNode instanceof Element) {
-				Element childNodeElement = (Element) childNode;
-				if (childNodeElement.getTagName().equals("name")) {
-					name = childNodeElement.getChildNodes().item(0).getNodeValue();
-				} else if (childNodeElement.getTagName().equals("value")) {
-					NodeList valueChildNodes = childNodeElement.getChildNodes();
-					for (int j = 0; j < valueChildNodes.getLength(); ++j) {
-						Node valueChildNode = valueChildNodes.item(j);
-						if (valueChildNode instanceof Element) {
-							value = parseTag((Element) valueChildNode);
+		
+		private static ArrayTag parseArrayTag(Element element) {
+			List<Tag> elements = new LinkedList<Tag>();
+			NodeList childNodes = element.getChildNodes();
+			for (int i = 0; i < childNodes.getLength(); ++i) {
+				Node childNode = childNodes.item(i);
+				if (childNode instanceof Element) {
+					Element childNodeElement = (Element) childNode;
+					NodeList elementChildNodes = childNodeElement.getChildNodes();
+					for (int j = 0; j < elementChildNodes.getLength(); ++j) {
+						Node elementChildNode = elementChildNodes.item(j);
+						if (elementChildNode instanceof Element) {
+							elements.add(parseTag((Element) elementChildNode));
 						}
 					}
 				}
 			}
+			return new ArrayTag(elements);
 		}
-		return new ObjectTag.Entry(name, value);
-	}
-	
-	private static ObjectTag parseObjectTag(Element element) {
-		List<ObjectTag.Entry> entries = new LinkedList<DocumentSchema.ObjectTag.Entry>();
-		NodeList childNodes = element.getChildNodes();
-		for (int i = 0; i < childNodes.getLength(); ++i) {
-			// Each child node is an <entry> element.
-			Node childNode = childNodes.item(i);
-			if (childNode instanceof Element) {
-				Element entryElement = (Element) childNode;
-				entries.add(parseObjectEntryTag(entryElement));
-			}
-		}
-		return new ObjectTag(entries);
 		
+		private static ObjectTag.Entry parseObjectEntryTag(Element element) {
+			String name = null;
+			Tag value = null;
+			NodeList childNodes = element.getChildNodes();
+			for (int i = 0; i < childNodes.getLength(); ++i) {
+				Node childNode = childNodes.item(i);
+				if (childNode instanceof Element) {
+					Element childNodeElement = (Element) childNode;
+					if (childNodeElement.getTagName().equals("name")) {
+						name = childNodeElement.getChildNodes().item(0).getNodeValue();
+					} else if (childNodeElement.getTagName().equals("value")) {
+						NodeList valueChildNodes = childNodeElement.getChildNodes();
+						for (int j = 0; j < valueChildNodes.getLength(); ++j) {
+							Node valueChildNode = valueChildNodes.item(j);
+							if (valueChildNode instanceof Element) {
+								value = parseTag((Element) valueChildNode);
+							}
+						}
+					}
+				}
+			}
+			return new ObjectTag.Entry(name, value);
+		}
+		
+		private static ObjectTag parseObjectTag(Element element) {
+			List<ObjectTag.Entry> entries = new LinkedList<DocumentSchema.ObjectTag.Entry>();
+			NodeList childNodes = element.getChildNodes();
+			for (int i = 0; i < childNodes.getLength(); ++i) {
+				// Each child node is an <entry> element.
+				Node childNode = childNodes.item(i);
+				if (childNode instanceof Element) {
+					Element entryElement = (Element) childNode;
+					entries.add(parseObjectEntryTag(entryElement));
+				}
+			}
+			return new ObjectTag(entries);
+		}
+		
+		/**
+		 * Given the parsed XML {@link Document}, returns the root {@link ObjectTag}. 
+		 * 
+		 * @param document the parsed XML document
+		 * @return the root JSON object
+		 */
+		private static ObjectTag parseDocument(Document document) {
+			Element root = document.getDocumentElement();
+			return parseObjectTag(root);
+		}
 	}
 	
-	private static ObjectTag parseDocument(Document document) {
-		Element root = document.getDocumentElement();
-		return parseObjectTag(root);
+	/**
+	 * Private namespace for methods tat parse JSON.
+	 */
+	private static final class JsonParser {
+		private static Tag parseTag(Object object) {
+			if (object instanceof JSONObject) {
+				JSONObject jsonObject = (JSONObject) object;
+				return parseObjectTag(jsonObject);
+			} else if (object instanceof JSONArray) {
+				JSONArray jsonArray = (JSONArray) object;
+				return parseArrayTag(jsonArray);
+			} else if (object instanceof String) {
+				return StringTag.INSTANCE;
+			} else if (object instanceof Integer) {
+				return IntegerTag.INSTANCE;
+			} else if (object instanceof Float) {
+				return FloatTag.INSTANCE;
+			} else if (object instanceof Boolean) {
+				return BooleanTag.INSTANCE;
+			}
+			return null;
+		}
+		
+		private static ArrayTag parseArrayTag(JSONArray json) {
+			List<Tag> elements = new ArrayList<Tag>(json.size());
+			for (Object jsonElement : json) {
+				elements.add(parseTag(jsonElement));
+			}
+			return new ArrayTag(elements);
+		}
+		
+		@SuppressWarnings("unchecked")
+		private static ObjectTag parseObjectTag(JSONObject json) {
+			List<ObjectTag.Entry> entries = new ArrayList<DocumentSchema.ObjectTag.Entry>(json.size());
+			Set<Map.Entry<String, Object>> entrySet = json.entrySet();
+			for (Map.Entry<String, Object> entry : entrySet) {
+				String name = entry.getKey();
+				Tag value = parseTag(entry.getValue());
+				entries.add(new ObjectTag.Entry(name, value));
+			}
+			return new ObjectTag(entries);
+		}
+		
+		/**
+		 * Given the root {@link JSONObject} of the parsed JSON, returns the root {@link ObjectTag}. 
+		 * 
+		 * @param jsonRoot the root JSON object
+		 * @return the root JSON object
+		 */
+		private static ObjectTag parseJson(JSONObject jsonRoot) {
+			return parseObjectTag(jsonRoot);
+		}
 	}
 	
 	/**
@@ -301,20 +372,42 @@ public class DocumentSchema {
 	 * 
 	 * @param schemaFile the file containing the XML of the schema
 	 * @return the document schema
+	 * @throws BenchmarkException if the file could not be parsed
 	 */
-	public static DocumentSchema createSchema(File schemaFile) throws BenchmarkException {
+	public static DocumentSchema createSchemaFromXml(File schemaFile) throws BenchmarkException {
 		DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = null;
 		try {
 			builder = builderFactory.newDocumentBuilder();
 			Document document = builder.parse(schemaFile);
-			ObjectTag root = parseDocument(document);
+			ObjectTag root = XmlParser.parseDocument(document);
 			return new DocumentSchema(root);
 		} catch (ParserConfigurationException e) {
 			throw new BenchmarkException(e);
 		} catch (SAXException e) {
 			throw new BenchmarkException(e);
 		} catch (IOException e) {
+			throw new BenchmarkException(e);
+		}
+	}
+	
+	/**
+	 * Returns a {@link DocumentSchema} parsed from the JSON in the given file.
+	 * 
+	 * @param schemaFile the file containing the JSON of the schema
+	 * @return the document schema
+	 * @throws BenchmarkException if the file could not be parsed
+	 */
+	public static DocumentSchema createSchemaFromJson(File schemaFile) throws BenchmarkException {
+		try {
+			BufferedReader bufferedReader = new BufferedReader(new FileReader(schemaFile));
+			JSONParser jsonParser = new JSONParser();
+			JSONObject json = (JSONObject) jsonParser.parse(bufferedReader);
+			ObjectTag root = JsonParser.parseJson(json);
+			return new DocumentSchema(root);
+		} catch (IOException e) {
+			throw new BenchmarkException(e);
+		} catch (ParseException e) {
 			throw new BenchmarkException(e);
 		}
 	}

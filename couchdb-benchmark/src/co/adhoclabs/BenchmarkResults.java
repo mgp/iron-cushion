@@ -1,6 +1,6 @@
 package co.adhoclabs;
 /**
- * The results of the bemchmark.
+ * The results of the benchmark.
  * 
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
