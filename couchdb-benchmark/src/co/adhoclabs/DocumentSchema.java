@@ -30,7 +30,7 @@ import org.xml.sax.SAXException;
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public class DocumentSchema {
-	private static abstract class Tag {
+	private static abstract class Value {
 		public enum Type {
 			OBJECT,
 			ARRAY,
@@ -53,14 +53,14 @@ public class DocumentSchema {
 	}
 	
 	/**
-	 * A tag for {@link JSONObject}.
+	 * A value for {@link JSONObject}.
 	 */
-	private static final class ObjectTag extends Tag {
+	private static final class ObjectValue extends Value {
 		private static final class Entry {
 			private final String name;
-			private final Tag value;
+			private final Value value;
 			
-			private Entry(String name, Tag value) {
+			private Entry(String name, Value value) {
 				this.name = name;
 				this.value = value;
 			}
@@ -68,7 +68,7 @@ public class DocumentSchema {
 		
 		private final List<Entry> entries;
 		
-		private ObjectTag(List<Entry> entries) {
+		private ObjectValue(List<Entry> entries) {
 			this.entries = entries;
 		}
 		
@@ -92,12 +92,12 @@ public class DocumentSchema {
 	}
 	
 	/**
-	 * A tag for {@link JSONArray}.
+	 * A value for {@link JSONArray}.
 	 */
-	private static final class ArrayTag extends Tag {
-		private final List<Tag> elements;
+	private static final class ArrayValue extends Value {
+		private final List<Value> elements;
 		
-		private ArrayTag(List<Tag> elements) {
+		private ArrayValue(List<Value> elements) {
 			this.elements = elements;
 		}
 		
@@ -109,7 +109,7 @@ public class DocumentSchema {
 			sb.append("[");
 			int index = 0;
 			final int lastIndex = elements.size() - 1;
-			for (Tag element : elements) {
+			for (Value element : elements) {
 				element.toString(sb);
 				if (index++ < lastIndex) {
 					sb.append(", ");
@@ -120,10 +120,10 @@ public class DocumentSchema {
 	}
 	
 	/**
-	 * A tag for {@link String}.
+	 * A value for {@link String}.
 	 */
-	private static final class StringTag extends Tag {
-		private static final StringTag INSTANCE = new StringTag();
+	private static final class StringValue extends Value {
+		private static final StringValue INSTANCE = new StringValue();
 		
 		public Type getType() {
 			return Type.STRING;
@@ -135,10 +135,10 @@ public class DocumentSchema {
 	}
 	
 	/**
-	 * A tag for {@link Boolean}.
+	 * A value for {@link Boolean}.
 	 */
-	private static final class BooleanTag extends Tag {
-		private static final BooleanTag INSTANCE = new BooleanTag();
+	private static final class BooleanValue extends Value {
+		private static final BooleanValue INSTANCE = new BooleanValue();
 		
 		public Type getType() {
 			return Type.BOOLEAN;
@@ -150,10 +150,10 @@ public class DocumentSchema {
 	}
 	
 	/**
-	 * A tag for {@link Integer}.
+	 * A value for {@link Integer}.
 	 */
-	private static final class IntegerTag extends Tag {
-		private static final IntegerTag INSTANCE = new IntegerTag();
+	private static final class IntegerValue extends Value {
+		private static final IntegerValue INSTANCE = new IntegerValue();
 		
 		public Type getType() {
 			return Type.INTEGER;
@@ -165,10 +165,10 @@ public class DocumentSchema {
 	}
 	
 	/**
-	 * A tag for {@link Float}.
+	 * A value for {@link Float}.
 	 */
-	private static final class FloatTag extends Tag {
-		private static final FloatTag INSTANCE = new FloatTag();
+	private static final class FloatValue extends Value {
+		private static final FloatValue INSTANCE = new FloatValue();
 		
 		public Type getType() {
 			return Type.FLOAT;
@@ -180,10 +180,10 @@ public class DocumentSchema {
 	}
 	
 	/**
-	 * A tag for {@code null}. 
+	 * A value for {@code null}. 
 	 */
-	private static final class NullTag extends Tag {
-		private static final NullTag INSTANCE = new NullTag();
+	private static final class NullValue extends Value {
+		private static final NullValue INSTANCE = new NullValue();
 		
 		public Type getType() {
 			return Type.NULL;
@@ -195,30 +195,29 @@ public class DocumentSchema {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private final JSONArray getArray(ArrayTag tag, ValueGenerator generator) {
+	private final JSONArray getArray(ArrayValue value, ValueGenerator generator) {
 		JSONArray array = new JSONArray();
-		for (Tag element : tag.elements) {
+		for (Value element : value.elements) {
 			array.add(getObject(element, generator));
 		}
 		return array;
 	}
 
 	@SuppressWarnings("unchecked")
-	private final JSONObject getObject(ObjectTag tag, ValueGenerator generator) {
+	private final JSONObject getObject(ObjectValue value, ValueGenerator generator) {
 		JSONObject object = new JSONObject();
-		for (ObjectTag.Entry entry : tag.entries) {
-			Object value = getObject(entry.value, generator);
-			object.put(entry.name, value);
+		for (ObjectValue.Entry entry : value.entries) {
+			object.put(entry.name, getObject(entry.value, generator));
 		}
 		return object;
 	}
 	
-	private final Object getObject(Tag tag, ValueGenerator generator) {
-		switch (tag.getType()) {
+	private final Object getObject(Value value, ValueGenerator generator) {
+		switch (value.getType()) {
 		case ARRAY:
-			return getArray((ArrayTag) tag, generator);
+			return getArray((ArrayValue) value, generator);
 		case OBJECT:
-			return getObject((ObjectTag) tag, generator);
+			return getObject((ObjectValue) value, generator);
 		case STRING:
 			return generator.nextString();
 		case BOOLEAN:
@@ -235,9 +234,9 @@ public class DocumentSchema {
 		return null;
 	}
 	
-	private final ObjectTag root;
+	private final ObjectValue root;
 	
-	private DocumentSchema(ObjectTag root) {
+	private DocumentSchema(ObjectValue root) {
 		this.root = root;
 	}
 	
@@ -245,27 +244,27 @@ public class DocumentSchema {
 	 * Private namespace for methods that parse XML.
 	 */
 	private static final class XmlParser {
-		private static Tag parseTag(Element element) {
+		private static Value parseTag(Element element) {
 			if (element.getTagName().equals("array")) {
 				return parseArrayTag(element);
 			} else if (element.getTagName().equals("object")) {
 				return parseObjectTag(element);
 			} else if (element.getTagName().equals("string")) {
-				return StringTag.INSTANCE;
+				return StringValue.INSTANCE;
 			} else if (element.getTagName().equals("integer")) {
-				return IntegerTag.INSTANCE;
+				return IntegerValue.INSTANCE;
 			} else if (element.getTagName().equals("float")) {
-				return FloatTag.INSTANCE;
+				return FloatValue.INSTANCE;
 			} else if (element.getTagName().equals("boolean")) {
-				return BooleanTag.INSTANCE;
+				return BooleanValue.INSTANCE;
 			} else if (element.getTagName().equals("null")) {
-				return NullTag.INSTANCE;
+				return NullValue.INSTANCE;
 			}
 			return null;
 		}
 		
-		private static ArrayTag parseArrayTag(Element element) {
-			List<Tag> elements = new LinkedList<Tag>();
+		private static ArrayValue parseArrayTag(Element element) {
+			List<Value> elements = new LinkedList<Value>();
 			NodeList childNodes = element.getChildNodes();
 			for (int i = 0; i < childNodes.getLength(); ++i) {
 				Node childNode = childNodes.item(i);
@@ -280,12 +279,12 @@ public class DocumentSchema {
 					}
 				}
 			}
-			return new ArrayTag(elements);
+			return new ArrayValue(elements);
 		}
 		
-		private static ObjectTag.Entry parseObjectEntryTag(Element element) {
+		private static ObjectValue.Entry parseObjectEntryTag(Element element) {
 			String name = null;
-			Tag value = null;
+			Value value = null;
 			NodeList childNodes = element.getChildNodes();
 			for (int i = 0; i < childNodes.getLength(); ++i) {
 				Node childNode = childNodes.item(i);
@@ -304,11 +303,11 @@ public class DocumentSchema {
 					}
 				}
 			}
-			return new ObjectTag.Entry(name, value);
+			return new ObjectValue.Entry(name, value);
 		}
 		
-		private static ObjectTag parseObjectTag(Element element) {
-			List<ObjectTag.Entry> entries = new LinkedList<DocumentSchema.ObjectTag.Entry>();
+		private static ObjectValue parseObjectTag(Element element) {
+			List<ObjectValue.Entry> entries = new LinkedList<DocumentSchema.ObjectValue.Entry>();
 			NodeList childNodes = element.getChildNodes();
 			for (int i = 0; i < childNodes.getLength(); ++i) {
 				// Each child node is an <entry> element.
@@ -318,16 +317,16 @@ public class DocumentSchema {
 					entries.add(parseObjectEntryTag(entryElement));
 				}
 			}
-			return new ObjectTag(entries);
+			return new ObjectValue(entries);
 		}
 		
 		/**
-		 * Given the parsed XML {@link Document}, returns the root {@link ObjectTag}. 
+		 * Given the parsed XML {@link Document}, returns the root {@link ObjectValue}. 
 		 * 
 		 * @param document the parsed XML document
 		 * @return the root JSON object
 		 */
-		private static ObjectTag parseDocument(Document document) {
+		private static ObjectValue parseDocument(Document document) {
 			Element root = document.getDocumentElement();
 			return parseObjectTag(root);
 		}
@@ -337,55 +336,55 @@ public class DocumentSchema {
 	 * Private namespace for methods tat parse JSON.
 	 */
 	private static final class JsonParser {
-		private static Tag parseTag(Object object) {
+		private static Value parseValue(Object object) {
 			if (object == null) {
-				return NullTag.INSTANCE;
+				return NullValue.INSTANCE;
 			} else if (object instanceof JSONObject) {
 				JSONObject jsonObject = (JSONObject) object;
-				return parseObjectTag(jsonObject);
+				return parseObjectValue(jsonObject);
 			} else if (object instanceof JSONArray) {
 				JSONArray jsonArray = (JSONArray) object;
-				return parseArrayTag(jsonArray);
+				return parseArrayValue(jsonArray);
 			} else if (object instanceof String) {
-				return StringTag.INSTANCE;
+				return StringValue.INSTANCE;
 			} else if (object instanceof Integer) {
-				return IntegerTag.INSTANCE;
+				return IntegerValue.INSTANCE;
 			} else if (object instanceof Float) {
-				return FloatTag.INSTANCE;
+				return FloatValue.INSTANCE;
 			} else if (object instanceof Boolean) {
-				return BooleanTag.INSTANCE;
+				return BooleanValue.INSTANCE;
 			}
 			return null;
 		}
 		
-		private static ArrayTag parseArrayTag(JSONArray json) {
-			List<Tag> elements = new ArrayList<Tag>(json.size());
+		private static ArrayValue parseArrayValue(JSONArray json) {
+			List<Value> elements = new ArrayList<Value>(json.size());
 			for (Object jsonElement : json) {
-				elements.add(parseTag(jsonElement));
+				elements.add(parseValue(jsonElement));
 			}
-			return new ArrayTag(elements);
+			return new ArrayValue(elements);
 		}
 		
 		@SuppressWarnings("unchecked")
-		private static ObjectTag parseObjectTag(JSONObject json) {
-			List<ObjectTag.Entry> entries = new ArrayList<DocumentSchema.ObjectTag.Entry>(json.size());
+		private static ObjectValue parseObjectValue(JSONObject json) {
+			List<ObjectValue.Entry> entries = new ArrayList<DocumentSchema.ObjectValue.Entry>(json.size());
 			Set<Map.Entry<String, Object>> entrySet = json.entrySet();
 			for (Map.Entry<String, Object> entry : entrySet) {
 				String name = entry.getKey();
-				Tag value = parseTag(entry.getValue());
-				entries.add(new ObjectTag.Entry(name, value));
+				Value value = parseValue(entry.getValue());
+				entries.add(new ObjectValue.Entry(name, value));
 			}
-			return new ObjectTag(entries);
+			return new ObjectValue(entries);
 		}
 		
 		/**
-		 * Given the root {@link JSONObject} of the parsed JSON, returns the root {@link ObjectTag}. 
+		 * Given the root {@link JSONObject} of the parsed JSON, returns the root {@link ObjectValue}. 
 		 * 
 		 * @param jsonRoot the root JSON object
 		 * @return the root JSON object
 		 */
-		private static ObjectTag parseJson(JSONObject jsonRoot) {
-			return parseObjectTag(jsonRoot);
+		private static ObjectValue parseJson(JSONObject jsonRoot) {
+			return parseObjectValue(jsonRoot);
 		}
 	}
 	
@@ -402,7 +401,7 @@ public class DocumentSchema {
 		try {
 			builder = builderFactory.newDocumentBuilder();
 			Document document = builder.parse(schemaFile);
-			ObjectTag root = XmlParser.parseDocument(document);
+			ObjectValue root = XmlParser.parseDocument(document);
 			return new DocumentSchema(root);
 		} catch (ParserConfigurationException e) {
 			throw new BenchmarkException(e);
@@ -425,7 +424,7 @@ public class DocumentSchema {
 			BufferedReader bufferedReader = new BufferedReader(new FileReader(schemaFile));
 			JSONParser jsonParser = new JSONParser();
 			JSONObject json = (JSONObject) jsonParser.parse(bufferedReader);
-			ObjectTag root = JsonParser.parseJson(json);
+			ObjectValue root = JsonParser.parseJson(json);
 			return new DocumentSchema(root);
 		} catch (IOException e) {
 			throw new BenchmarkException(e);
