@@ -21,9 +21,8 @@ import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.util.CharsetUtil;
 
 import co.adhoclabs.AbstractBenchmarkHandler;
-import co.adhoclabs.ConnectionTimers;
-import co.adhoclabs.ConnectionTimers.RunningConnectionTimer;
 import co.adhoclabs.HttpReactor.ResponseHandler;
+import co.adhoclabs.bulkinsert.BulkInsertConnectionTimers.RunningConnectionTimer;
 
 /**
  * The {@link SimpleChannelUpstreamHandler} implementation for use in the bulk
@@ -32,17 +31,19 @@ import co.adhoclabs.HttpReactor.ResponseHandler;
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public class BulkInsertHandler extends AbstractBenchmarkHandler {
+	private final BulkInsertConnectionTimers connectionTimers;
 	private final BulkInsertDocuments documents;
 	private final String bulkInsertPath;
 	
 	private int insertOperationsCompleted;
 	private boolean readingChunks;
 	
-	public BulkInsertHandler(ConnectionTimers connectionTimers,
+	public BulkInsertHandler(BulkInsertConnectionTimers connectionTimers,
 			BulkInsertDocuments documents, String bulkInsertPath, ResponseHandler responseHandler,
 			CountDownLatch countDownLatch) {
-		super(connectionTimers, responseHandler, countDownLatch);
+		super(responseHandler, countDownLatch);
 		
+		this.connectionTimers = connectionTimers;
 		this.documents = documents;
 		this.bulkInsertPath = bulkInsertPath;
 		

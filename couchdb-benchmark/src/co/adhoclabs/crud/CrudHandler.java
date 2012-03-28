@@ -7,7 +7,6 @@ import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 
 import co.adhoclabs.AbstractBenchmarkHandler;
-import co.adhoclabs.ConnectionTimers;
 import co.adhoclabs.HttpReactor.ResponseHandler;
 
 /**
@@ -15,16 +14,18 @@ import co.adhoclabs.HttpReactor.ResponseHandler;
  * operation {@link ChannelPipeline}.
  */
 public class CrudHandler extends AbstractBenchmarkHandler {
+	private final CrudConnectionTimers connectionTimers;
 	private final String crudPath;
 	
 	private int crudOperationsCompleted;
 	private boolean readingChunks;
 	
-	public CrudHandler(ConnectionTimers connectionTimers,
+	public CrudHandler(CrudConnectionTimers connectionTimers,
 			String crudPath, ResponseHandler responseHandler,
 			CountDownLatch countDownLatch) {
-		super(connectionTimers, responseHandler, countDownLatch);
+		super(responseHandler, countDownLatch);
 		
+		this.connectionTimers = connectionTimers;
 		this.crudPath = crudPath;
 		
 		this.crudOperationsCompleted = 0;

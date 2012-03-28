@@ -26,6 +26,21 @@ public class BenchmarkResults {
 		this.transferRate = transferRate;
 	}
 	
+	/* TODO
+	public static final class ConnectionBenchmarkResults {
+		public final ConnectionTimes times;
+		public final long bytesSent;
+		public final long bytesReceived;
+		
+		public ConnectionBenchmarkResults(ConnectionTimes times,
+				long bytesSent, long bytesReceived) {
+			this.times = times;
+			this.bytesSent = bytesSent;
+			this.bytesReceived = bytesReceived;
+		}
+	}
+	*/
+	
 	/**
 	 * Essential statistics about a data set.
 	 */
@@ -45,9 +60,11 @@ public class BenchmarkResults {
 			this.deviation = deviation;
 		}
 		
-		private SampleStatistics statisticsForPopulation(long[] values) {
-			// Make a copy as a courtesy.
+		private static SampleStatistics statisticsForPopulation(long[] values) {
+			// Make a copy of the array before sorting as a courtesy.
 			values = Arrays.copyOf(values, values.length);
+			Arrays.sort(values);
+			
 			// Find the minimum and maximum.
 			long min = values[0];
 			long max = values[values.length - 1];

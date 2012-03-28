@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import co.adhoclabs.ConnectionTimers.ConnectionTimes;
+import co.adhoclabs.bulkinsert.BulkInsertConnectionTimers.BulkInsertConnectionTimes;
 import co.adhoclabs.bulkinsert.BulkInsertDocuments;
 
 /**
@@ -56,10 +56,10 @@ public class CouchDbBenchmark {
 		
 		// Perform the bulk insert operations.
 		HttpReactor httpReactor = new HttpReactor(parsedArguments.numConnections, databaseAddress);
-		List<ConnectionTimes> allConnectionTimes = httpReactor.performBulkInserts(
+		List<BulkInsertConnectionTimes> allConnectionTimes = httpReactor.performBulkInserts(
 				allBulkInsertDocuments, bulkInsertPath);
 		
-		ConnectionTimes firstConnectionTimes = allConnectionTimes.get(0);
+		BulkInsertConnectionTimes firstConnectionTimes = allConnectionTimes.get(0);
 		System.out.println("localProcessingMillis=" + firstConnectionTimes.localProcessingMillis);
 		System.out.println("sendDataMillis=" + firstConnectionTimes.sendDataMillis);
 		System.out.println("remoteProcessingMillis=" + firstConnectionTimes.remoteProcessingMillis);

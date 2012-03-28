@@ -1,25 +1,23 @@
-package co.adhoclabs;
+package co.adhoclabs.bulkinsert;
+
+import co.adhoclabs.AbstractConnectionTimers;
+import co.adhoclabs.Timer;
 
 /**
- * Timers that breakdown how a connection spends its time.
+ * Timers that breakdown how a connection performing bulk inserts spends its time.
  * 
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
-public class ConnectionTimers {
-	private final Timer localProcessingTimer;
-	private final Timer sendDataTimer;
+public class BulkInsertConnectionTimers extends AbstractConnectionTimers {
 	private final Timer remoteProcessingTimer;
-	private final Timer receiveDataTimer;
 
-	public ConnectionTimers() {
-		localProcessingTimer = new Timer();
-		sendDataTimer = new Timer();
+	public BulkInsertConnectionTimers() {
+		super();
 		remoteProcessingTimer = new Timer();
-		receiveDataTimer = new Timer();
 	}
 	
 	/**
-	 * An enumeration over all 
+	 * An enumeration over all timers.
 	 */
 	public enum RunningConnectionTimer {
 		LOCAL_PROCESSING,
@@ -38,34 +36,22 @@ public class ConnectionTimers {
 	}
 	
 	/**
-	 * A breakdown of how a connection spent its time.
+	 * A breakdown of how a connection performing bulk inserts spent its time.
 	 */
-	public static final class ConnectionTimes {
-		/**
-		 * Milliseconds devoted to local processing.
-		 */
-		public final long localProcessingMillis;
-		/**
-		 * Milliseconds devoted to sending data.
-		 */
-		public final long sendDataMillis;
+	public static final class BulkInsertConnectionTimes extends AbstractConnectionTimes {
 		/**
 		 * Milliseconds devoted to remote processing.
 		 */
 		public final long remoteProcessingMillis;
-		/**
-		 * Milliseconds devoted to receiving data.
-		 */
-		public final long receiveDataMillis;
 		
-		public ConnectionTimes(long localProcessingMillis,
+		public BulkInsertConnectionTimes(long localProcessingMillis,
 				long sendDataMillis,
 				long remoteProcessingMillis,
 				long receiveDataMillis) {
-			this.localProcessingMillis = localProcessingMillis;
-			this.sendDataMillis = sendDataMillis;
+			super(localProcessingMillis,
+					sendDataMillis,
+					receiveDataMillis);
 			this.remoteProcessingMillis = remoteProcessingMillis;
-			this.receiveDataMillis = receiveDataMillis;
 		}
 	}
 	
@@ -93,9 +79,7 @@ public class ConnectionTimers {
 		}
 	}
 	
-	/**
-	 * Starts the timer for local processing.
-	 */
+	@Override
 	public void startLocalProcessing() {
 		if (runningTimer == RunningConnectionTimer.LOCAL_PROCESSING) {
 			return;
@@ -105,9 +89,7 @@ public class ConnectionTimers {
 		runningTimer = RunningConnectionTimer.LOCAL_PROCESSING;
 	}
 	
-	/**
-	 * Starts the timer for sending data.
-	 */
+	@Override
 	public void startSendData() {
 		if (runningTimer == RunningConnectionTimer.SEND_DATA) {
 			return;
@@ -129,9 +111,7 @@ public class ConnectionTimers {
 		runningTimer = RunningConnectionTimer.REMOTE_PROCESSING;
 	}
 	
-	/**
-	 * Starts the timer for receiving data.
-	 */
+	@Override
 	public void startReceiveData() {
 		if (runningTimer == RunningConnectionTimer.RECEIVE_DATA) {
 			return;
@@ -142,22 +122,18 @@ public class ConnectionTimers {
 	}
 	
 	/**
-	 * @return a {@link ConnectionTimes} instance
+	 * @return a {@link BulkInsertConnectionTimes} instance
 	 */
-	public ConnectionTimes getConnectionTimes() {
-		return new ConnectionTimes(localProcessingTimer.getTotalTimeMillis(),
+	public BulkInsertConnectionTimes getConnectionTimes() {
+		return new BulkInsertConnectionTimes(localProcessingTimer.getTotalTimeMillis(),
 				sendDataTimer.getTotalTimeMillis(),
 				remoteProcessingTimer.getTotalTimeMillis(),
 				receiveDataTimer.getTotalTimeMillis());
 	}
 	
-	/**
-	 * Resets all timers.
-	 */
+	@Override
 	public void reset() {
-		localProcessingTimer.reset();
-		sendDataTimer.reset();
+		super.reset();
 		remoteProcessingTimer.reset();
-		receiveDataTimer.reset();
 	}
 }

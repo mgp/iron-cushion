@@ -9,9 +9,12 @@ import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
-import co.adhoclabs.ConnectionTimers.ConnectionTimes;
+import co.adhoclabs.bulkinsert.BulkInsertConnectionTimers;
+import co.adhoclabs.bulkinsert.BulkInsertConnectionTimers.BulkInsertConnectionTimes;
 import co.adhoclabs.bulkinsert.BulkInsertDocuments;
 import co.adhoclabs.bulkinsert.BulkInsertPipelineFactory;
+import co.adhoclabs.crud.CrudConnectionTimers;
+import co.adhoclabs.crud.CrudConnectionTimers.CrudConnectionTimes;
 import co.adhoclabs.crud.CrudPipelineFactory;
 
 /**
@@ -79,7 +82,7 @@ public class HttpReactor {
 		this.databaseAddress = databaseAddress;
 	}
 	
-	private List<ConnectionTimes> run(AbstractBenchmarkPipelineFactory channelPipelineFactory)
+	private void run(AbstractBenchmarkPipelineFactory channelPipelineFactory)
 			throws BenchmarkException {
 		try {
 			// Create the connections to the server.
@@ -96,29 +99,38 @@ public class HttpReactor {
 			channelPipelineFactory.getCountDownLatch().await();
 			// Shut down executor threads to exit.
 			clientBootstrap.releaseExternalResources();
-			
-			// Return the elapsed time of each connection.
-			List<ConnectionTimes> allConnectionTimes = new ArrayList<ConnectionTimes>(numConnections);
-			for (ConnectionTimers connectionTimers : channelPipelineFactory.getAllConnectionTimers()) {
-				allConnectionTimes.add(connectionTimers.getConnectionTimes());
-			}
-			return allConnectionTimes;
 		} catch (InterruptedException e) {
 			throw new BenchmarkException(e);
 		}
 	}
 	
-	public List<ConnectionTimes> performBulkInserts(List<BulkInsertDocuments> allBulkInsertDocuments,
+	public List<BulkInsertConnectionTimes> performBulkInserts(List<BulkInsertDocuments> allBulkInsertDocuments,
 			String bulkInsertPath) throws BenchmarkException {
+		// Run the bulk inserts.
 		BulkInsertPipelineFactory bulkInsertPipelineFactory = new BulkInsertPipelineFactory(
 				numConnections, allBulkInsertDocuments, bulkInsertPath,
 				NullResponseHandler.INSTANCE);
-		return run(bulkInsertPipelineFactory);
+		run(bulkInsertPipelineFactory);
+		
+		// Return the times for each connection.
+		List<BulkInsertConnectionTimes> allConnectionTimes = new ArrayList<BulkInsertConnectionTimes>(numConnections);
+		for (BulkInsertConnectionTimers connectionTimers : bulkInsertPipelineFactory.getAllConnectionTimers()) {
+			allConnectionTimes.add(connectionTimers.getConnectionTimes());
+		}
+		return allConnectionTimes;
 	}
 	
-	public List<ConnectionTimes> performCrudOperations(String crudPath) throws Exception {
+	public List<CrudConnectionTimes> performCrudOperations(String crudPath) throws Exception {
+		// Run the CRUD operations.
 		CrudPipelineFactory crudPipelineFactory = new CrudPipelineFactory(
 				numConnections, crudPath, NullResponseHandler.INSTANCE);
-		return run(crudPipelineFactory);
+		run(crudPipelineFactory);
+		
+		// Return the times for each connection.
+		List<CrudConnectionTimes> allConnectionTimes = new ArrayList<CrudConnectionTimes>(numConnections);
+		for (CrudConnectionTimers connectionTimers : crudPipelineFactory.getAllConnectionTimers()) {
+			allConnectionTimes.add(connectionTimers.getConnectionTimes());
+		}
+		return allConnectionTimes;
 	}
 }

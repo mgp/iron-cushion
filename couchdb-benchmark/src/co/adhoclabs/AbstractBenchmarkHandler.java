@@ -12,21 +12,16 @@ import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import co.adhoclabs.HttpReactor.ResponseHandler;
 
 public abstract class AbstractBenchmarkHandler extends SimpleChannelUpstreamHandler {
-	protected final ConnectionTimers connectionTimers;
 	protected final ResponseHandler responseHandler;
 	protected final CountDownLatch countDownLatch;
 
-	protected AbstractBenchmarkHandler(ConnectionTimers connectionTimers,
-			ResponseHandler responseHandler,
-			CountDownLatch countDownLatch) {
-		this.connectionTimers = connectionTimers;
+	protected AbstractBenchmarkHandler(
+			ResponseHandler responseHandler, CountDownLatch countDownLatch) {
 		this.responseHandler = responseHandler;
 		this.countDownLatch = countDownLatch;
 	}
 	
 	protected void close(Channel channel) {
-		connectionTimers.stop();
-		
 		ChannelFuture channelFuture = channel.close();
 		channelFuture.addListener(new ChannelFutureListener() {
 			@Override
