@@ -51,9 +51,9 @@ public class CouchDbBenchmark {
 		String bulkInsertPath = sb.toString();
 		
 		// Perform the bulk insert operations.
-		HttpReactor httpReactor = new HttpReactor(parsedArguments.numConnections);
+		HttpReactor httpReactor = new HttpReactor(parsedArguments.numConnections, databaseAddress);
 		List<ConnectionTimes> allConnectionTimes = httpReactor.performBulkInserts(
-				allBulkInsertDocuments, databaseAddress, bulkInsertPath);
+				allBulkInsertDocuments, bulkInsertPath);
 		
 		ConnectionTimes firstConnectionTimes = allConnectionTimes.get(0);
 		System.out.println("localProcessingMillis=" + firstConnectionTimes.localProcessingMillis);

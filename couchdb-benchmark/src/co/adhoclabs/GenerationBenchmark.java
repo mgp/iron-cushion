@@ -13,17 +13,19 @@ public class GenerationBenchmark {
 		File file = new File(filename);
 		DocumentSchema schema = DocumentSchema.createSchema(file);
 		System.out.println("schema=" + schema);
-		Random rng = new Random(2012);
+		Random rng = new Random(2013);
 		ValueGenerator valueGenerator = new ValueGenerator(rng);
 		
 		Timer timer = new Timer();
 		timer.start();
 		List<JSONObject> documents = new ArrayList<JSONObject>(10000);
-		for (int i = 0; i < 10000; ++i) {
-			documents.add(schema.getNewDocument(valueGenerator));
+		for (int i = 0; i < 1; ++i) {
+			JSONObject document = schema.getNewDocument(valueGenerator);
+			System.out.println(document.toString());
+			documents.add(document);
 		}
 		timer.stop();
-		System.out.println("document creation totalTimeMillis=" + timer.getTotalTimeMillis());
+		// System.out.println("document creation totalTimeMillis=" + timer.getTotalTimeMillis());
 		
 		/*
 		HttpReactor reactor = new HttpReactor(0);

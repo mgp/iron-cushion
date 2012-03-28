@@ -3,7 +3,6 @@ package co.adhoclabs;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
@@ -13,6 +12,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import co.adhoclabs.ConnectionTimers.ConnectionTimes;
 import co.adhoclabs.bulkinsert.BulkInsertDocuments;
 import co.adhoclabs.bulkinsert.BulkInsertPipelineFactory;
+import co.adhoclabs.crud.CrudPipelineFactory;
 
 /**
  * The networking engine that asynchronously executes HTTP requests.
@@ -21,6 +21,7 @@ import co.adhoclabs.bulkinsert.BulkInsertPipelineFactory;
  */
 public class HttpReactor {
 	private final int numConnections;
+	private final InetSocketAddress databaseAddress;
 	
 	/**
 	 * Interface for a consumer of HTTP responses.
@@ -73,44 +74,51 @@ public class HttpReactor {
 		}
 	}
 	
-	public HttpReactor(int numConnections) {
+	public HttpReactor(int numConnections, InetSocketAddress databaseAddress) {
 		this.numConnections = numConnections;
+		this.databaseAddress = databaseAddress;
 	}
 	
-	public List<ConnectionTimes> performBulkInserts(List<BulkInsertDocuments> allBulkInsertDocuments,
-			InetSocketAddress databaseAddress, String bulkInsertPath) throws BenchmarkException {
+	private List<ConnectionTimes> run(AbstractBenchmarkPipelineFactory channelPipelineFactory)
+			throws BenchmarkException {
 		try {
-			CountDownLatch countDownLatch = new CountDownLatch(numConnections);
-
+			// Create the connections to the server.
 			ClientBootstrap clientBootstrap = new ClientBootstrap(
 					new NioClientSocketChannelFactory(
 						Executors.newCachedThreadPool(),
 						Executors.newCachedThreadPool()));
-			List<ConnectionTimers> allConnectionTimers = new ArrayList<ConnectionTimers>(numConnections);
-			for (int i = 0; i < numConnections; ++i) {
-				allConnectionTimers.add(new ConnectionTimers());
-			}
-			BulkInsertPipelineFactory bulkInsertPipelineFactory = new BulkInsertPipelineFactory(
-					allConnectionTimers, allBulkInsertDocuments, bulkInsertPath,
-					NullResponseHandler.INSTANCE, countDownLatch);
-			clientBootstrap.setPipelineFactory(bulkInsertPipelineFactory);
-			
+			clientBootstrap.setPipelineFactory(channelPipelineFactory);
 			for (int i = 0; i < numConnections; ++i) {
 				clientBootstrap.connect(databaseAddress);
 			}
 			
-			// Wait for all connections to complete their bulk insert operations.
-			countDownLatch.await();
+			// Wait for all connections to complete their tasks.
+			channelPipelineFactory.getCountDownLatch().await();
 			// Shut down executor threads to exit.
 			clientBootstrap.releaseExternalResources();
 			
+			// Return the elapsed time of each connection.
 			List<ConnectionTimes> allConnectionTimes = new ArrayList<ConnectionTimes>(numConnections);
-			for (ConnectionTimers connectionTimers : allConnectionTimers) {
+			for (ConnectionTimers connectionTimers : channelPipelineFactory.getAllConnectionTimers()) {
 				allConnectionTimes.add(connectionTimers.getConnectionTimes());
 			}
 			return allConnectionTimes;
 		} catch (InterruptedException e) {
 			throw new BenchmarkException(e);
 		}
+	}
+	
+	public List<ConnectionTimes> performBulkInserts(List<BulkInsertDocuments> allBulkInsertDocuments,
+			String bulkInsertPath) throws BenchmarkException {
+		BulkInsertPipelineFactory bulkInsertPipelineFactory = new BulkInsertPipelineFactory(
+				numConnections, allBulkInsertDocuments, bulkInsertPath,
+				NullResponseHandler.INSTANCE);
+		return run(bulkInsertPipelineFactory);
+	}
+	
+	public List<ConnectionTimes> performCrudOperations(String crudPath) throws Exception {
+		CrudPipelineFactory crudPipelineFactory = new CrudPipelineFactory(
+				numConnections, crudPath, NullResponseHandler.INSTANCE);
+		return run(crudPipelineFactory);
 	}
 }

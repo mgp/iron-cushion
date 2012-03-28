@@ -9,7 +9,6 @@ import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
@@ -21,6 +20,7 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.util.CharsetUtil;
 
+import co.adhoclabs.AbstractBenchmarkHandler;
 import co.adhoclabs.ConnectionTimers;
 import co.adhoclabs.ConnectionTimers.RunningConnectionTimer;
 import co.adhoclabs.HttpReactor.ResponseHandler;
@@ -31,12 +31,9 @@ import co.adhoclabs.HttpReactor.ResponseHandler;
  * 
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
-public class BulkInsertHandler extends SimpleChannelUpstreamHandler {
-	private final ConnectionTimers connectionTimers;
+public class BulkInsertHandler extends AbstractBenchmarkHandler {
 	private final BulkInsertDocuments documents;
 	private final String bulkInsertPath;
-	private final ResponseHandler responseHandler;
-	private final CountDownLatch countDownLatch;
 	
 	private int insertOperationsCompleted;
 	private boolean readingChunks;
@@ -44,11 +41,10 @@ public class BulkInsertHandler extends SimpleChannelUpstreamHandler {
 	public BulkInsertHandler(ConnectionTimers connectionTimers,
 			BulkInsertDocuments documents, String bulkInsertPath, ResponseHandler responseHandler,
 			CountDownLatch countDownLatch) {
-		this.connectionTimers = connectionTimers;
+		super(connectionTimers, responseHandler, countDownLatch);
+		
 		this.documents = documents;
 		this.bulkInsertPath = bulkInsertPath;
-		this.responseHandler = responseHandler;
-		this.countDownLatch = countDownLatch;
 		
 		this.insertOperationsCompleted = 0;
 	}
@@ -91,19 +87,6 @@ public class BulkInsertHandler extends SimpleChannelUpstreamHandler {
 		insertOperationsCompleted++;
 	}
 	
-	private void close(Channel channel) {
-		connectionTimers.stop();
-		
-		ChannelFuture channelFuture = channel.close();
-		channelFuture.addListener(new ChannelFutureListener() {
-			@Override
-			public void operationComplete(ChannelFuture channelFuture) throws Exception {
-				// Allow the main thread to continue.
-				countDownLatch.countDown();
-			}
-		});
-	}
-	
 	@Override
 	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
 		// Immediately perform the first bulk insert upon connecting.
@@ -140,11 +123,5 @@ public class BulkInsertHandler extends SimpleChannelUpstreamHandler {
 				responseHandler.appendBody(body);
 			}
 		}
-	}
-	
-	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-		e.getCause().printStackTrace();
-		
-		close(e.getChannel());
 	}
 }
