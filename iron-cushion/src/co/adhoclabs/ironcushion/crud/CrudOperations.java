@@ -144,7 +144,7 @@ public class CrudOperations {
 			return nextReadCreateDocumentId++;
 		}
 		// Return the identifier of a document created from a bulk insert.
-		return nextReadBulkInsertDocumentId;
+		return nextReadBulkInsertDocumentId++;
 	}
 	
 	private static Type[] createCrudOperations(CrudOperationCounts operationCounts) {

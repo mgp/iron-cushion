@@ -9,6 +9,7 @@ import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
+import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
@@ -46,7 +47,6 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 	
 	private JSONObject document;
 	private int crudOperationsCompleted;
-	private boolean readingChunks;
 	
 	public CrudHandler(CrudConnectionTimers connectionTimers,
 			CrudOperations crudOperations, String crudPath, ResponseHandler responseHandler,
@@ -120,7 +120,7 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 	private String getDocumentPath(String documentId) {
 		// TODO: Optimize this.
 		StringBuilder sb = new StringBuilder();
-		sb.append('/').append(crudPath);
+		sb.append(crudPath);
 		sb.append('/').append(documentId);
 		return sb.toString();
 	}
@@ -128,7 +128,7 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 	private String getDocumentDeletePath(String documentId, String revision) {
 		// TODO: Optimize this.
 		StringBuilder sb = new StringBuilder();
-		sb.append('/').append(crudPath);
+		sb.append(crudPath);
 		sb.append('/').append(documentId);
 		sb.append("?rev=").append(revision);
 		return sb.toString();
@@ -196,25 +196,29 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		performOperation(channel, documentPath, HttpMethod.DELETE, null, sendDeleteDataChannelFuture);
 	}
 	
+	private void performNextOperation(Channel channel) {
+		switch (crudOperations.getOperation(crudOperationsCompleted)) {
+		case CREATE:
+			performCreateOperation(channel);
+			break;
+		case READ:
+			performReadOperation(channel);
+			break;
+		case UPDATE:
+			performUpdateOperation(channel);
+			break;
+		case DELETE:
+			performDeleteOperation(channel);
+			break;
+		default:
+			break;
+		}
+	}
+	
 	private void performNextOperationOrClose(Channel channel) {
 		if (crudOperationsCompleted < crudOperations.size()) {
 			// Perform the next CRUD operation.
-			switch (crudOperations.getOperation(crudOperationsCompleted)) {
-			case CREATE:
-				performCreateOperation(channel);
-				break;
-			case READ:
-				performReadOperation(channel);
-				break;
-			case UPDATE:
-				performUpdateOperation(channel);
-				break;
-			case DELETE:
-				performDeleteOperation(channel);
-				break;
-			default:
-				break;
-			}
+			performNextOperation(channel);
 		} else {
 			// There are no more CRUD operations to perform.
 			close(channel);
@@ -254,6 +258,7 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		Channel channel = e.getChannel();
 		HttpResponse response = (HttpResponse) e.getMessage();
 		JSONObject json = getJsonReply(response);
+		System.out.println("json=" + json);
 		
 		switch (crudOperations.getOperation(crudOperationsCompleted)) {
 		case CREATE:
@@ -271,5 +276,11 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		
 		crudOperationsCompleted++;
 		performNextOperationOrClose(channel);
+	}
+	
+	@Override
+	public void channelConnected(ChannelHandlerContext ctx, ChannelStateEvent e) {
+		// Immediately perform the first CRUD operation upon connecting.
+		performNextOperation(e.getChannel());
 	}
 }
