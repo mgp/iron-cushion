@@ -14,6 +14,7 @@ import co.adhoclabs.ironcushion.bulkinsert.BulkInsertDocuments;
 import co.adhoclabs.ironcushion.bulkinsert.BulkInsertPipelineFactory;
 import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionTimers.BulkInsertConnectionTimes;
 import co.adhoclabs.ironcushion.crud.CrudConnectionTimers;
+import co.adhoclabs.ironcushion.crud.CrudOperations;
 import co.adhoclabs.ironcushion.crud.CrudPipelineFactory;
 import co.adhoclabs.ironcushion.crud.CrudConnectionTimers.CrudConnectionTimes;
 
@@ -120,10 +121,11 @@ public class HttpReactor {
 		return allConnectionTimes;
 	}
 	
-	public List<CrudConnectionTimes> performCrudOperations(String crudPath) throws Exception {
+	public List<CrudConnectionTimes> performCrudOperations(List<CrudOperations> allCrudOperations,
+			String crudPath) throws BenchmarkException {
 		// Run the CRUD operations.
 		CrudPipelineFactory crudPipelineFactory = new CrudPipelineFactory(
-				numConnections, crudPath, NullResponseHandler.INSTANCE);
+				numConnections, allCrudOperations, crudPath, NullResponseHandler.INSTANCE);
 		run(crudPipelineFactory);
 		
 		// Return the times for each connection.

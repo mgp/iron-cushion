@@ -32,8 +32,9 @@ import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionTimers.RunningCon
  */
 public class BulkInsertHandler extends AbstractBenchmarkHandler {
 	private final BulkInsertConnectionTimers connectionTimers;
-	private final BulkInsertDocuments documents;
+	private final BulkInsertDocuments bulkInsertDocuments;
 	private final String bulkInsertPath;
+	
 	private final SendDataChannelFuture sendDataChannelFuture;
 	
 	private int insertOperationsCompleted;
@@ -45,8 +46,9 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 		super(responseHandler, countDownLatch);
 		
 		this.connectionTimers = connectionTimers;
-		this.documents = documents;
+		this.bulkInsertDocuments = documents;
 		this.bulkInsertPath = bulkInsertPath;
+		
 		this.sendDataChannelFuture = new SendDataChannelFuture();
 		
 		this.insertOperationsCompleted = 0;
@@ -66,7 +68,7 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 	}
 	
 	private void writeNextBulkInsertOrClose(Channel channel) {
-		if (insertOperationsCompleted < documents.size()) {
+		if (insertOperationsCompleted < bulkInsertDocuments.size()) {
 			// Perform the next bulk insert operation.
 			writeNextBulkInsert(channel);
 		} else {
@@ -79,7 +81,7 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 		connectionTimers.startLocalProcessing();
 		HttpRequest request = new DefaultHttpRequest(
 				HttpVersion.HTTP_1_1, HttpMethod.POST, bulkInsertPath);
-		ChannelBuffer insertBuffer = documents.getBuffer(insertOperationsCompleted);
+		ChannelBuffer insertBuffer = bulkInsertDocuments.getBuffer(insertOperationsCompleted);
 		// Assign the headers.
 		request.setHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 		// request.setHeader(HttpHeaders.Names.ACCEPT_ENCODING, HttpHeaders.Values.GZIP);

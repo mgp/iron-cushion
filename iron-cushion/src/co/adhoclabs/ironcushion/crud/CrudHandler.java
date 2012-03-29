@@ -5,7 +5,9 @@ import java.util.concurrent.CountDownLatch;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
+import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
 import org.jboss.netty.handler.codec.http.HttpMethod;
@@ -23,24 +25,27 @@ import co.adhoclabs.ironcushion.crud.CrudConnectionTimers.RunningConnectionTimer
  */
 public class CrudHandler extends AbstractBenchmarkHandler {
 	private final CrudConnectionTimers connectionTimers;
+	private final CrudOperations crudOperations;
 	private final String crudPath;
+	
 	private final SendCreateDataChannelFuture sendCreateDataChannelFuture;
 	private final SendReadDataChannelFuture sendReadDataChannelFuture;
 	private final SendUpdateDataChannelFuture sendUpdateDataChannelFuture;
 	private final SendDeleteDataChannelFuture sendDeleteDataChannelFuture;
 	
-	private CrudOperations crudOperations;
-	private int crudOperationsCompleted;
 	private JSONObject document;
+	private int crudOperationsCompleted;
 	private boolean readingChunks;
 	
 	public CrudHandler(CrudConnectionTimers connectionTimers,
-			String crudPath, ResponseHandler responseHandler,
+			CrudOperations crudOperations, String crudPath, ResponseHandler responseHandler,
 			CountDownLatch countDownLatch) {
 		super(responseHandler, countDownLatch);
 		
 		this.connectionTimers = connectionTimers;
+		this.crudOperations = crudOperations;
 		this.crudPath = crudPath;
+		
 		this.sendCreateDataChannelFuture = new SendCreateDataChannelFuture();
 		this.sendReadDataChannelFuture = new SendReadDataChannelFuture();
 		this.sendUpdateDataChannelFuture = new SendUpdateDataChannelFuture();
@@ -135,12 +140,16 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 	}
 	
 	private void performNextOperationOrClose(Channel channel) {
-		if (true) {
+		if (crudOperationsCompleted < crudOperations.size()) {
 			// Perform the next CRUD operation.
 			
 		} else {
 			// There are no more CRUD operations to perform.
 			close(channel);
 		}
+	}
+	
+	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+		
 	}
 }

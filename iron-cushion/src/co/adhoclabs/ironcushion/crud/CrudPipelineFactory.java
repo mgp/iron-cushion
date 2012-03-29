@@ -16,19 +16,21 @@ import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
  */
 public class CrudPipelineFactory extends AbstractBenchmarkPipelineFactory {
 	private final List<CrudConnectionTimers> allConnectionTimers;
+	private final List<CrudOperations> allCrudOperations;
 	private final String crudPath;
 
 	private int connectionNum;
 	
 	public CrudPipelineFactory(int numConnections,
-			String crudPath, ResponseHandler responseHandler) {
+			List<CrudOperations> allCrudOperations, String crudPath,
+			ResponseHandler responseHandler) {
 		super(numConnections, responseHandler);
 		
 		this.allConnectionTimers = new ArrayList<CrudConnectionTimers>(numConnections);
 		for (int i = 0; i < numConnections; ++i) {
 			this.allConnectionTimers.add(new CrudConnectionTimers());
 		}
-		// TODO: set crud operations
+		this.allCrudOperations = allCrudOperations;
 		this.crudPath = crudPath;
 		
 		connectionNum = 0;
@@ -44,11 +46,12 @@ public class CrudPipelineFactory extends AbstractBenchmarkPipelineFactory {
 	@Override
 	public ChannelPipeline getPipeline() throws Exception {
 		CrudConnectionTimers connectionTimers = allConnectionTimers.get(connectionNum);
-		// TODO: get crud operations
+		CrudOperations crudOperations = allCrudOperations.get(connectionNum);
 		connectionNum++;
 		return Channels.pipeline(
 				new HttpClientCodec(),
-				new CrudHandler(connectionTimers, crudPath, responseHandler, countDownLatch)
+				// new HttpContentDecompressor(),
+				new CrudHandler(connectionTimers, crudOperations, crudPath, responseHandler, countDownLatch)
 				);
 	}
 }

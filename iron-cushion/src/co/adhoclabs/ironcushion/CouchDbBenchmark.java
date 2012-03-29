@@ -9,6 +9,9 @@ import java.util.Random;
 
 import co.adhoclabs.ironcushion.bulkinsert.BulkInsertDocuments;
 import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionTimers.BulkInsertConnectionTimes;
+import co.adhoclabs.ironcushion.crud.CrudConnectionTimers.CrudConnectionTimes;
+import co.adhoclabs.ironcushion.crud.CrudOperations.CrudOperationCounts;
+import co.adhoclabs.ironcushion.crud.CrudOperations;
 
 /**
  * Benchmark utility for CouchDB.
@@ -16,6 +19,7 @@ import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionTimers.BulkInsert
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public class CouchDbBenchmark {
+	// TODO: Organize this better.
 	public static void main(String[] args) throws BenchmarkException {
 		ParsedArguments parsedArguments = ParsedArguments.parseArguments(args);
 
@@ -56,14 +60,35 @@ public class CouchDbBenchmark {
 		
 		// Perform the bulk insert operations.
 		HttpReactor httpReactor = new HttpReactor(parsedArguments.numConnections, databaseAddress);
-		List<BulkInsertConnectionTimes> allConnectionTimes = httpReactor.performBulkInserts(
+		List<BulkInsertConnectionTimes> allBulkInsertConnectionTimes = httpReactor.performBulkInserts(
 				allBulkInsertDocuments, bulkInsertPath);
 		
-		BulkInsertConnectionTimes firstConnectionTimes = allConnectionTimes.get(0);
+		// Print the results.
+		BulkInsertConnectionTimes firstConnectionTimes = allBulkInsertConnectionTimes.get(0);
 		System.out.println("localProcessingMillis=" + firstConnectionTimes.localProcessingMillis);
 		System.out.println("sendDataMillis=" + firstConnectionTimes.sendDataMillis);
 		System.out.println("remoteProcessingMillis=" + firstConnectionTimes.remoteProcessingMillis);
 		System.out.println("receiveDataMillis=" + firstConnectionTimes.receiveDataMillis);
+		
+		// Create the CRUD operation path.
+		sb = new StringBuilder();
+		sb.append('/').append(parsedArguments.databaseName);
+		String crudPath = sb.toString();
+		
+		// Create the CRUD operations to perform.
+		List<CrudOperations> allCrudOperations = new ArrayList<CrudOperations>(
+				parsedArguments.numConnections);
+		CrudOperationCounts crudOperationCounts = CrudOperations.createOperationCounts(
+				parsedArguments);
+		for (int i = 0; i < parsedArguments.numConnections; ++i) {
+			CrudOperations crudOperations = CrudOperations.createCrudOperations(
+					i, parsedArguments, crudOperationCounts);
+			allCrudOperations.add(crudOperations);
+		}
+
+		// Perform the CRUD operations.
+		List<CrudConnectionTimes> allCrudConnectionTimes = httpReactor.performCrudOperations(
+				allCrudOperations, crudPath);
 		
 		/*
 		httpReactor.performBulkInserts();
