@@ -443,6 +443,22 @@ public class DocumentSchema {
 		return getObject(root, generator);
 	}
 	
+	/**
+	 * Replaces a randomly chosen value in the given JSON.
+	 * 
+	 * @param json the JSON of the object with a value to replace
+	 * @param generator the generator for the new value in the document
+	 */
+	@SuppressWarnings("unchecked")
+	public void updateDocument(JSONObject json, ValueGenerator generator) {
+		// Choose a random value to replace.
+		int index = generator.nextInt(root.entries.size());
+		// Replace the value.
+		ObjectValue.Entry entry = root.entries.get(index);
+		Object newValue = getObject(entry.value, generator);
+		json.put(entry.name, newValue);
+	}
+	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		root.toString(sb);
