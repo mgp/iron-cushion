@@ -25,7 +25,6 @@ import org.json.simple.parser.ParseException;
 
 import co.adhoclabs.ironcushion.AbstractBenchmarkHandler;
 import co.adhoclabs.ironcushion.BenchmarkException;
-import co.adhoclabs.ironcushion.DocumentSchema;
 import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
 import co.adhoclabs.ironcushion.crud.CrudConnectionTimers.RunningConnectionTimer;
 
@@ -149,8 +148,6 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 			request.setContent(contentBuffer);
 		}
 		
-		System.out.println(request + "\n");
-		
 		connectionTimers.startSendData();
 		ChannelFuture channelFuture = channel.write(request);
 		channelFuture.addListener(channelFutureListener);
@@ -158,51 +155,41 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 	
 	@SuppressWarnings("unchecked")
 	private void performCreateOperation(Channel channel) {
-		connectionTimers.startLocalProcessing();
-		
 		document = crudOperations.getNewDocument();
 		String documentId = String.valueOf(crudOperations.getNextCreateId());
 		document.put("_id", documentId);
 		String documentPath = getDocumentPath(documentId);
 		ChannelBuffer insertBuffer = ChannelBuffers.copiedBuffer(
 				document.toString(), CharsetUtil.UTF_8);
-		System.out.println("CREATE operation");
 		performOperation(channel, documentPath, HttpMethod.PUT, insertBuffer, sendCreateDataChannelFuture);
 	}
 	
 	private void performReadOperation(Channel channel) {
-		connectionTimers.startLocalProcessing();
-		
 		document = null;
 		String documentId = String.valueOf(crudOperations.getNextReadId());
 		String documentPath = getDocumentPath(documentId);
-		System.out.println("READ operation");
 		performOperation(channel, documentPath, HttpMethod.GET, null, sendReadDataChannelFuture);
 	}
 	
 	private void performUpdateOperation(Channel channel) {
-		connectionTimers.startLocalProcessing();
-		
 		String documentId = (String) document.get("_id");
 		String documentPath = getDocumentPath(documentId);
 		crudOperations.updateDocument(document);
 		ChannelBuffer updateBuffer = ChannelBuffers.copiedBuffer(
 				document.toString(), CharsetUtil.UTF_8);
-		System.out.println("UPDATE operation");
 		performOperation(channel, documentPath, HttpMethod.PUT, updateBuffer, sendUpdateDataChannelFuture);
 	}
 	
 	private void performDeleteOperation(Channel channel) {
-		connectionTimers.startLocalProcessing();
-		
 		String documentId = (String) document.get("_id");
 		String revision = (String) document.get("_rev");
 		String documentPath = getDocumentDeletePath(documentId, revision);
-		System.out.println("DELETE operation");
 		performOperation(channel, documentPath, HttpMethod.DELETE, null, sendDeleteDataChannelFuture);
 	}
 	
 	private void performNextOperation(Channel channel) {
+		connectionTimers.startLocalProcessing();
+
 		switch (crudOperations.getOperation(crudOperationsCompleted)) {
 		case CREATE:
 			performCreateOperation(channel);
@@ -259,12 +246,12 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 	}
 	
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-		connectionTimers.startReceiveData();
+		// TODO: Method performNextOperation already does this.
+		connectionTimers.startLocalProcessing();
 		
 		Channel channel = e.getChannel();
 		HttpResponse response = (HttpResponse) e.getMessage();
 		JSONObject json = getJsonReply(response);
-		System.out.println("json=" + json + "\n");
 		
 		switch (crudOperations.getOperation(crudOperationsCompleted)) {
 		case CREATE:
@@ -279,6 +266,7 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		default:
 			break;
 		}
+		crudOperations.completedOperation(crudOperationsCompleted);
 		
 		crudOperationsCompleted++;
 		performNextOperationOrClose(channel);
