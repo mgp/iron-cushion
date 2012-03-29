@@ -23,7 +23,6 @@ public class ValueGenerator {
 		int endIndex = 0;
 		for (int i = 0; i < NUM_WORDS; ++i) {
 			int wordLength = MIN_WORD_LENGTH + nextInt(wordSizeRange);
-			System.out.println("wordLength=" + wordLength);
 			while (endIndex < wordLength) {
 				chars[endIndex] = ALPHABET.charAt(nextInt(ALPHABET_SIZE));
 				endIndex++;
