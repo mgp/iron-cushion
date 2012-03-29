@@ -22,6 +22,7 @@ public class CouchDbBenchmark {
 	// TODO: Organize this better.
 	public static void main(String[] args) throws BenchmarkException {
 		ParsedArguments parsedArguments = ParsedArguments.parseArguments(args);
+		Random rng = new Random(2012);
 
 		// Create the document schema.
 		DocumentSchema schema = null;
@@ -31,7 +32,7 @@ public class CouchDbBenchmark {
 			schema = DocumentSchema.createSchemaFromXml(parsedArguments.xmlDocumentSchemaFile);
 		}
 		// Create the documents to bulk insert from the schema.
-		ValueGenerator valueGenerator = new ValueGenerator(new Random(2012));
+		ValueGenerator valueGenerator = new ValueGenerator(rng);
 		List<BulkInsertDocuments> allBulkInsertDocuments = new ArrayList<BulkInsertDocuments>(
 				parsedArguments.numConnections);
 		for (int i = 0; i < parsedArguments.numConnections; ++i) {
@@ -82,7 +83,7 @@ public class CouchDbBenchmark {
 				parsedArguments);
 		for (int i = 0; i < parsedArguments.numConnections; ++i) {
 			CrudOperations crudOperations = CrudOperations.createCrudOperations(
-					i, parsedArguments, crudOperationCounts);
+					i, schema, new ValueGenerator(rng), parsedArguments, crudOperationCounts);
 			allCrudOperations.add(crudOperations);
 		}
 

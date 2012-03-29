@@ -15,11 +15,16 @@ import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.util.CharsetUtil;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import co.adhoclabs.ironcushion.AbstractBenchmarkHandler;
+import co.adhoclabs.ironcushion.BenchmarkException;
+import co.adhoclabs.ironcushion.DocumentSchema;
 import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
 import co.adhoclabs.ironcushion.crud.CrudConnectionTimers.RunningConnectionTimer;
 
@@ -153,8 +158,7 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 	private void performCreateOperation(Channel channel) {
 		connectionTimers.startLocalProcessing();
 		
-		// TODO: create the document
-		document = null;
+		document = crudOperations.getNewDocument();
 		String documentId = String.valueOf(crudOperations.getNextCreateId());
 		document.put("_id", documentId);
 		String documentPath = getDocumentPath(documentId);
@@ -177,7 +181,7 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		
 		String documentId = (String) document.get("_id");
 		String documentPath = getDocumentPath(documentId);
-		// TODO: update the document
+		crudOperations.updateDocument(document);
 		ChannelBuffer updateBuffer = ChannelBuffers.copiedBuffer(
 				document.toString(), CharsetUtil.UTF_8);
 		performOperation(channel, documentPath, HttpMethod.PUT, updateBuffer, sendUpdateDataChannelFuture);
@@ -217,11 +221,6 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		}
 	}
 	
-	private String getJsonBody(MessageEvent e) {
-		// TODO
-		return null;
-	}
-	
 	@SuppressWarnings("unchecked")
 	private void receivedCreateResponse(JSONObject json) {
 		document.put("_rev", json.get("rev"));
@@ -236,9 +235,25 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		document.put("_rev", json.get("rev"));
 	}
 	
+	private JSONObject getJsonReply(HttpResponse response) throws BenchmarkException {
+		if (response.isChunked()) {
+			throw new BenchmarkException("CRUD response is chunked");
+		}
+		ChannelBuffer content = response.getContent();
+		String json = content.toString(CharsetUtil.UTF_8);
+		try {
+			return (JSONObject) new JSONParser().parse(json);
+		} catch (ParseException e) {
+			throw new BenchmarkException(e);
+		}
+	}
+	
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-		Channel channel = ctx.getChannel();
-		JSONObject json = null;	// TODO: get from the body
+		connectionTimers.startReceiveData();
+		
+		Channel channel = e.getChannel();
+		HttpResponse response = (HttpResponse) e.getMessage();
+		JSONObject json = getJsonReply(response);
 		
 		switch (crudOperations.getOperation(crudOperationsCompleted)) {
 		case CREATE:

@@ -4,7 +4,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
 
+import org.json.simple.JSONObject;
+
+import co.adhoclabs.ironcushion.DocumentSchema;
 import co.adhoclabs.ironcushion.ParsedArguments;
+import co.adhoclabs.ironcushion.ValueGenerator;
 
 /**
  * Specifies the CRUD operations to be performed by one connection, and maintains the document
@@ -69,35 +73,25 @@ public class CrudOperations {
 	}
 	
 	private final Type[] operations;
+	
+	private final DocumentSchema documentSchema;
+	private final ValueGenerator valueGenerator;
+	
 	private int nextReadBulkInsertDocumentId;
 	private int nextCreateDocumentId;
 	private int nextReadCreateDocumentId;
 	
-	private CrudOperations(Type[] operations, int nextReadBulkInsertDocumentId,
-			int nextCreateDocumentId) {
+	private CrudOperations(Type[] operations,
+			DocumentSchema documentSchema, ValueGenerator valueGenerator,
+			int nextReadBulkInsertDocumentId, int nextCreateDocumentId) {
 		this.operations = operations;
+		
+		this.documentSchema = documentSchema;
+		this.valueGenerator = valueGenerator;
+		
 		this.nextReadBulkInsertDocumentId = nextReadBulkInsertDocumentId;
 		this.nextCreateDocumentId = nextCreateDocumentId;
 		this.nextReadCreateDocumentId = nextCreateDocumentId;
-	}
-	
-	/**
-	 * @return the next identifier for a CREATE operation.
-	 */
-	public int getNextCreateId() {
-		return nextCreateDocumentId++;
-	}
-	
-	/**
-	 * @return the next identifier for a READ operation.
-	 */
-	public int getNextReadId() {
-		if (nextReadCreateDocumentId < nextCreateDocumentId) {
-			// Read the identifier of a document created individually.
-			return nextReadCreateDocumentId++;
-		}
-		// Return the identifier of a document created from a bulk insert.
-		return nextReadBulkInsertDocumentId;
 	}
 	
 	/**
@@ -115,6 +109,42 @@ public class CrudOperations {
 	 */
 	public int size() {
 		return operations.length;
+	}
+	
+	/**
+	 * @return a new document that conforms to the schema
+	 */
+	public JSONObject getNewDocument() {
+		return documentSchema.getNewDocument(valueGenerator);
+	}
+	
+	/**
+	 * Updates a randomly chosen value in the given document.
+	 * 
+	 * @param document the document to update
+	 */
+	public void updateDocument(JSONObject document) {
+		documentSchema.updateDocument(document, valueGenerator);
+	}
+	
+	/**
+	 * @return the next identifier for a CREATE operation.
+	 */
+	public int getNextCreateId() {
+		// TODO: remove this, automatically insert ID in getNewDocument?
+		return nextCreateDocumentId++;
+	}
+	
+	/**
+	 * @return the next identifier for a READ operation.
+	 */
+	public int getNextReadId() {
+		if (nextReadCreateDocumentId < nextCreateDocumentId) {
+			// Read the identifier of a document created individually.
+			return nextReadCreateDocumentId++;
+		}
+		// Return the identifier of a document created from a bulk insert.
+		return nextReadBulkInsertDocumentId;
 	}
 	
 	private static Type[] createCrudOperations(CrudOperationCounts operationCounts) {
@@ -178,11 +208,13 @@ public class CrudOperations {
 	 * Returns the {@link CrudOperations} to be performed by a connection.
 	 * 
 	 * @param connectionNum the number of the connection
+	 * @param documentSchema the document schema
 	 * @param parsedArguments the parsed command line arguments
 	 * @param crudOperationCounts the counts for all CRUD operations
 	 * @return the CRUD operations to be performed
 	 */
 	public static CrudOperations createCrudOperations(int connectionNum,
+			DocumentSchema documentSchema, ValueGenerator valueGenerator,
 			ParsedArguments parsedArguments, CrudOperationCounts crudOperationCounts) {
 		Type[] operations = createCrudOperations(crudOperationCounts);
 		// Compute the identifier of the first document bulk inserted by this connection.
@@ -195,6 +227,7 @@ public class CrudOperations {
 		// Compute the identifier for the next document inserted by this connection.
 		int nextCreateDocumentId = numBulkInsertDocuments +
 				(crudOperationCounts.numCreateOperations * connectionNum);
-		return new CrudOperations(operations, nextReadBulkInsertDocumentId, nextCreateDocumentId);
+		return new CrudOperations(operations, documentSchema, valueGenerator,
+				nextReadBulkInsertDocumentId, nextCreateDocumentId);
 	}
 }
