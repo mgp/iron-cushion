@@ -217,22 +217,38 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		}
 	}
 	
+	private String getJsonBody(MessageEvent e) {
+		// TODO
+		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void receivedCreateResponse(JSONObject json) {
+		document.put("_rev", json.get("rev"));
+	}
+	
+	private void receivedReadResponse(JSONObject json) {
+		document = json;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void receivedUpdateRepsonse(JSONObject json) {
+		document.put("_rev", json.get("rev"));
+	}
+	
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
 		Channel channel = ctx.getChannel();
-		JSONObject json = null;
+		JSONObject json = null;	// TODO: get from the body
 		
 		switch (crudOperations.getOperation(crudOperationsCompleted)) {
 		case CREATE:
-			
+			receivedCreateResponse(json);
 			break;
 		case READ:
-			
+			receivedReadResponse(json);
 			break;
 		case UPDATE:
-			
-			break;
-		case DELETE:
-			
+			receivedUpdateRepsonse(json);
 			break;
 		default:
 			break;
