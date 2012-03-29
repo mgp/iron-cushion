@@ -1,10 +1,10 @@
-package co.adhoclabs.crud;
+package co.adhoclabs.ironcushion.crud;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
 
-import co.adhoclabs.ParsedArguments;
+import co.adhoclabs.ironcushion.ParsedArguments;
 
 public class CrudOperations {
 	public enum Type {

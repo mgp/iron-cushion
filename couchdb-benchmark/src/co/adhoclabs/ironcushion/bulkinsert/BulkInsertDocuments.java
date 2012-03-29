@@ -1,4 +1,4 @@
-package co.adhoclabs.bulkinsert;
+package co.adhoclabs.ironcushion.bulkinsert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +9,8 @@ import org.jboss.netty.util.CharsetUtil;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import co.adhoclabs.DocumentSchema;
-import co.adhoclabs.ValueGenerator;
+import co.adhoclabs.ironcushion.DocumentSchema;
+import co.adhoclabs.ironcushion.ValueGenerator;
 
 /**
  * Contains the documents to be inserted in bulk by one connection.

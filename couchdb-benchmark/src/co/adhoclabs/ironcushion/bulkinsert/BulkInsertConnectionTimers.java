@@ -1,7 +1,7 @@
-package co.adhoclabs.bulkinsert;
+package co.adhoclabs.ironcushion.bulkinsert;
 
-import co.adhoclabs.AbstractConnectionTimers;
-import co.adhoclabs.Timer;
+import co.adhoclabs.ironcushion.AbstractConnectionTimers;
+import co.adhoclabs.ironcushion.Timer;
 
 /**
  * Timers that breakdown how a connection performing bulk inserts spends its time.

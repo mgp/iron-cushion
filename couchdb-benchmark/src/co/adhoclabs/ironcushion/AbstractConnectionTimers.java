@@ -1,4 +1,4 @@
-package co.adhoclabs;
+package co.adhoclabs.ironcushion;
 
 /**
  * Superclass for connection timers that record how a connection spends its time.

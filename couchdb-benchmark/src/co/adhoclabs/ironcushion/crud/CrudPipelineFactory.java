@@ -1,4 +1,4 @@
-package co.adhoclabs.crud;
+package co.adhoclabs.ironcushion.crud;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,8 +8,8 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.handler.codec.http.HttpClientCodec;
 
-import co.adhoclabs.AbstractBenchmarkPipelineFactory;
-import co.adhoclabs.HttpReactor.ResponseHandler;
+import co.adhoclabs.ironcushion.AbstractBenchmarkPipelineFactory;
+import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
 
 /**
  * The {@link ChannelPipelineFactory} for connections that perform CRUD operations.

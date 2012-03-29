@@ -1,4 +1,4 @@
-package co.adhoclabs;
+package co.adhoclabs.ironcushion;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -9,7 +9,7 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 
-import co.adhoclabs.HttpReactor.ResponseHandler;
+import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
 
 public abstract class AbstractBenchmarkHandler extends SimpleChannelUpstreamHandler {
 	protected final ResponseHandler responseHandler;

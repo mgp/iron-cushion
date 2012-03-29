@@ -1,10 +1,10 @@
-package co.adhoclabs;
+package co.adhoclabs.ironcushion;
 
 import java.util.concurrent.CountDownLatch;
 
 import org.jboss.netty.channel.ChannelPipelineFactory;
 
-import co.adhoclabs.HttpReactor.ResponseHandler;
+import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
 
 public abstract class AbstractBenchmarkPipelineFactory implements ChannelPipelineFactory {
 	protected final CountDownLatch countDownLatch;

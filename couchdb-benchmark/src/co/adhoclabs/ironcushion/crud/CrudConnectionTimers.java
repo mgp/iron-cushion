@@ -1,7 +1,7 @@
-package co.adhoclabs.crud;
+package co.adhoclabs.ironcushion.crud;
 
-import co.adhoclabs.AbstractConnectionTimers;
-import co.adhoclabs.Timer;
+import co.adhoclabs.ironcushion.AbstractConnectionTimers;
+import co.adhoclabs.ironcushion.Timer;
 
 /**
  * Timers that breakdown how a connection performing CRUD operations spends its time.

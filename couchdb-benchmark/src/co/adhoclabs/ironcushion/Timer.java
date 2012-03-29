@@ -1,4 +1,4 @@
-package co.adhoclabs;
+package co.adhoclabs.ironcushion;
 
 /**
  * A timer for operations.

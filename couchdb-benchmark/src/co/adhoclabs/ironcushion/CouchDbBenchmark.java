@@ -1,4 +1,4 @@
-package co.adhoclabs;
+package co.adhoclabs.ironcushion;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import co.adhoclabs.bulkinsert.BulkInsertConnectionTimers.BulkInsertConnectionTimes;
-import co.adhoclabs.bulkinsert.BulkInsertDocuments;
+import co.adhoclabs.ironcushion.bulkinsert.BulkInsertDocuments;
+import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionTimers.BulkInsertConnectionTimes;
 
 /**
  * Benchmark utility for CouchDB.
