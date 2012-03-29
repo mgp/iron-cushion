@@ -6,7 +6,16 @@ import java.util.Random;
 
 import co.adhoclabs.ironcushion.ParsedArguments;
 
+/**
+ * Specifies the CRUD operations to be performed by one connection, and maintains the document
+ * identifiers to use for create and read operations.
+ * 
+ * @author Michael Parker (michael.g.parker@gmail.com)
+ */
 public class CrudOperations {
+	/**
+	 * An enumeration over all CRUD operations.
+	 */
 	public enum Type {
 		CREATE,
 		READ,
@@ -24,7 +33,7 @@ public class CrudOperations {
 		public final int numDeleteOperations;
 		public final int numOperations;
 		
-		public CrudOperationCounts(int numCreateOperations, int numReadOperations,
+		private CrudOperationCounts(int numCreateOperations, int numReadOperations,
 				int numUpdateOperations, int numDeleteOperations, int numOperations) {
 			this.numCreateOperations = numCreateOperations;
 			this.numReadOperations = numReadOperations;
@@ -34,7 +43,13 @@ public class CrudOperations {
 		}
 	}
 	
-	private static CrudOperationCounts createOperationCounts(ParsedArguments parsedArguments) {
+	/**
+	 * Creates the counts for all CRUD operations to be performed by each connection.
+	 * 
+	 * @param parsedArguments the parsed command line arguments
+	 * @return the counts for all CRUD operations
+	 */
+	public static CrudOperationCounts createOperationCounts(ParsedArguments parsedArguments) {
 		double totalWeight = parsedArguments.createWeight +
 				parsedArguments.readWeight +
 				parsedArguments.updateWeight +
@@ -53,7 +68,56 @@ public class CrudOperations {
 				parsedArguments.numCrudOperations);
 	}
 	
-	public static Type[] getOperations(CrudOperationCounts operationCounts) {
+	private final Type[] operations;
+	private int nextReadBulkInsertDocumentId;
+	private int nextCreateDocumentId;
+	private int nextReadCreateDocumentId;
+	
+	private CrudOperations(Type[] operations, int nextReadBulkInsertDocumentId,
+			int nextCreateDocumentId) {
+		this.operations = operations;
+		this.nextReadBulkInsertDocumentId = nextReadBulkInsertDocumentId;
+		this.nextCreateDocumentId = nextCreateDocumentId;
+		this.nextReadCreateDocumentId = nextCreateDocumentId;
+	}
+	
+	/**
+	 * @return the next identifier for a CREATE operation.
+	 */
+	public int getNextCreateId() {
+		return nextCreateDocumentId++;
+	}
+	
+	/**
+	 * @return the next identifier for a READ operation.
+	 */
+	public int getNextReadId() {
+		if (nextReadCreateDocumentId < nextCreateDocumentId) {
+			// Read the identifier of a document created individually.
+			return nextReadCreateDocumentId++;
+		}
+		// Return the identifier of a document created from a bulk insert.
+		return nextReadBulkInsertDocumentId;
+	}
+	
+	/**
+	 * Returns the CRUD operation at the given index.
+	 * 
+	 * @param operationIndex the index of the operation to return
+	 * @return the CRUD operation
+	 */
+	public Type getOperation(int operationIndex) {
+		return operations[operationIndex];
+	}
+	
+	/**
+	 * @return the number of operations to perform
+	 */
+	public int size() {
+		return operations.length;
+	}
+	
+	private static Type[] createCrudOperations(CrudOperationCounts operationCounts) {
 		if (operationCounts.numDeleteOperations >
 				(operationCounts.numCreateOperations + operationCounts.numReadOperations)) {
 			throw new IllegalArgumentException();
@@ -108,5 +172,29 @@ public class CrudOperations {
 		}
 		
 		return operations;
+	}
+	
+	/**
+	 * Returns the {@link CrudOperations} to be performed by a connection.
+	 * 
+	 * @param connectionNum the number of the connection
+	 * @param parsedArguments the parsed command line arguments
+	 * @param crudOperationCounts the counts for all CRUD operations
+	 * @return the CRUD operations to be performed
+	 */
+	public static CrudOperations createCrudOperations(int connectionNum,
+			ParsedArguments parsedArguments, CrudOperationCounts crudOperationCounts) {
+		Type[] operations = createCrudOperations(crudOperationCounts);
+		// Compute the identifier of the first document bulk inserted by this connection.
+		int nextReadBulkInsertDocumentId = connectionNum *
+				parsedArguments.numDocumentsPerBulkInsert * parsedArguments.numBulkInsertOperations;
+		// Compute the total number of documents bulk inserted.
+		int numBulkInsertDocuments = (parsedArguments.numDocumentsPerBulkInsert *
+				parsedArguments.numBulkInsertOperations *
+				parsedArguments.numConnections);
+		// Compute the identifier for the next document inserted by this connection.
+		int nextCreateDocumentId = numBulkInsertDocuments +
+				(crudOperationCounts.numCreateOperations * connectionNum);
+		return new CrudOperations(operations, nextReadBulkInsertDocumentId, nextCreateDocumentId);
 	}
 }
