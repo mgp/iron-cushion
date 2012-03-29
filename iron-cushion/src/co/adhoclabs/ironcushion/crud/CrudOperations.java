@@ -147,12 +147,12 @@ public class CrudOperations {
 		return nextReadBulkInsertDocumentId++;
 	}
 	
-	private static Type[] createCrudOperations(CrudOperationCounts operationCounts) {
+	private static Type[] createCrudOperations(
+			CrudOperationCounts operationCounts, ValueGenerator valueGenerator) {
 		if (operationCounts.numDeleteOperations >
 				(operationCounts.numCreateOperations + operationCounts.numReadOperations)) {
 			throw new IllegalArgumentException();
 		}
-		Random rng = new Random();
 		
 		Type[] operations = new Type[operationCounts.numOperations];
 		Type[] createAndReadOperations = new Type[operationCounts.numCreateOperations + operationCounts.numReadOperations];
@@ -174,7 +174,7 @@ public class CrudOperations {
 		// Determine the number of UPDATE operations to follow each CREATE and READ operation.
 		int[] numFollowingUpdates = new int[operationCounts.numDeleteOperations];
 		for (int i = 0; i < operationCounts.numUpdateOperations; ++i) {
-			int deleteIndex = rng.nextInt(operationCounts.numDeleteOperations);
+			int deleteIndex = valueGenerator.nextInt(operationCounts.numDeleteOperations);
 			numFollowingUpdates[deleteIndex]++;
 		}
 		
@@ -216,7 +216,7 @@ public class CrudOperations {
 	public static CrudOperations createCrudOperations(int connectionNum,
 			DocumentSchema documentSchema, ValueGenerator valueGenerator,
 			ParsedArguments parsedArguments, CrudOperationCounts crudOperationCounts) {
-		Type[] operations = createCrudOperations(crudOperationCounts);
+		Type[] operations = createCrudOperations(crudOperationCounts, valueGenerator);
 		// Compute the identifier of the first document bulk inserted by this connection.
 		int nextReadBulkInsertDocumentId = connectionNum *
 				parsedArguments.numDocumentsPerBulkInsert * parsedArguments.numBulkInsertOperations;

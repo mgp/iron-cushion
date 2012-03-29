@@ -149,6 +149,8 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 			request.setContent(contentBuffer);
 		}
 		
+		System.out.println(request + "\n");
+		
 		connectionTimers.startSendData();
 		ChannelFuture channelFuture = channel.write(request);
 		channelFuture.addListener(channelFutureListener);
@@ -164,7 +166,8 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		String documentPath = getDocumentPath(documentId);
 		ChannelBuffer insertBuffer = ChannelBuffers.copiedBuffer(
 				document.toString(), CharsetUtil.UTF_8);
-		performOperation(channel, documentPath, HttpMethod.POST, insertBuffer, sendCreateDataChannelFuture);
+		System.out.println("CREATE operation");
+		performOperation(channel, documentPath, HttpMethod.PUT, insertBuffer, sendCreateDataChannelFuture);
 	}
 	
 	private void performReadOperation(Channel channel) {
@@ -173,6 +176,7 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		document = null;
 		String documentId = String.valueOf(crudOperations.getNextReadId());
 		String documentPath = getDocumentPath(documentId);
+		System.out.println("READ operation");
 		performOperation(channel, documentPath, HttpMethod.GET, null, sendReadDataChannelFuture);
 	}
 	
@@ -184,6 +188,7 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		crudOperations.updateDocument(document);
 		ChannelBuffer updateBuffer = ChannelBuffers.copiedBuffer(
 				document.toString(), CharsetUtil.UTF_8);
+		System.out.println("UPDATE operation");
 		performOperation(channel, documentPath, HttpMethod.PUT, updateBuffer, sendUpdateDataChannelFuture);
 	}
 	
@@ -193,6 +198,7 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		String documentId = (String) document.get("_id");
 		String revision = (String) document.get("_rev");
 		String documentPath = getDocumentDeletePath(documentId, revision);
+		System.out.println("DELETE operation");
 		performOperation(channel, documentPath, HttpMethod.DELETE, null, sendDeleteDataChannelFuture);
 	}
 	
@@ -258,7 +264,7 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		Channel channel = e.getChannel();
 		HttpResponse response = (HttpResponse) e.getMessage();
 		JSONObject json = getJsonReply(response);
-		System.out.println("json=" + json);
+		System.out.println("json=" + json + "\n");
 		
 		switch (crudOperations.getOperation(crudOperationsCompleted)) {
 		case CREATE:
