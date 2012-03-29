@@ -4,6 +4,8 @@ import java.util.Random;
 
 /**
  * Generates values for documents created by a {@link DocumentSchema}.
+ * 
+ * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public class ValueGenerator {
 	private int state1;

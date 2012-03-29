@@ -13,6 +13,8 @@ import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
 
 /**
  * The {@link ChannelPipelineFactory} for connections that perform bulk inserts.
+ * 
+ * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public class BulkInsertPipelineFactory extends AbstractBenchmarkPipelineFactory {
 	private final List<BulkInsertConnectionTimers> allConnectionTimers;

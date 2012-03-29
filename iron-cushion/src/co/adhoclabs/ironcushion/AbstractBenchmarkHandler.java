@@ -11,6 +11,9 @@ import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 
 import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
 
+/**
+ * @author Michael Parker (michael.g.parker@gmail.com)
+ */
 public abstract class AbstractBenchmarkHandler extends SimpleChannelUpstreamHandler {
 	protected final ResponseHandler responseHandler;
 	protected final CountDownLatch countDownLatch;

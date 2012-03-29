@@ -13,6 +13,8 @@ import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
 
 /**
  * The {@link ChannelPipelineFactory} for connections that perform CRUD operations.
+ * 
+ * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public class CrudPipelineFactory extends AbstractBenchmarkPipelineFactory {
 	private final List<CrudConnectionTimers> allConnectionTimers;

@@ -6,6 +6,9 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 
 import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
 
+/**
+ * @author Michael Parker (michael.g.parker@gmail.com)
+ */
 public abstract class AbstractBenchmarkPipelineFactory implements ChannelPipelineFactory {
 	protected final CountDownLatch countDownLatch;
 	protected final ResponseHandler responseHandler;
