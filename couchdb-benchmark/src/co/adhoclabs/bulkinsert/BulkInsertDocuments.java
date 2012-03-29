@@ -13,7 +13,7 @@ import co.adhoclabs.DocumentSchema;
 import co.adhoclabs.ValueGenerator;
 
 /**
- * Contains the documents to be inserted in bulk by one thread.
+ * Contains the documents to be inserted in bulk by one connection.
  * 
  * @author Michael Parker (michael.g.parker@gmail.com)
  */

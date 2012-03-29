@@ -11,6 +11,7 @@ import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpVersion;
+import org.json.simple.JSONObject;
 
 import co.adhoclabs.AbstractBenchmarkHandler;
 import co.adhoclabs.HttpReactor.ResponseHandler;
@@ -28,7 +29,9 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 	private final SendUpdateDataChannelFuture sendUpdateDataChannelFuture;
 	private final SendDeleteDataChannelFuture sendDeleteDataChannelFuture;
 	
+	private CrudOperations crudOperations;
 	private int crudOperationsCompleted;
+	private JSONObject document;
 	private boolean readingChunks;
 	
 	public CrudHandler(CrudConnectionTimers connectionTimers,
