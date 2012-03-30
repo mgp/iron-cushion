@@ -17,43 +17,49 @@ public class ValueGenerator {
 	private final String[] words;
 	private final WordJoiner wordJoiner;
 
-	private void createWords() {
+	/**
+	 * Returns the array of words for use by all {@link ValueGenerator} instances.
+	 * 
+	 * @param rng the random number generator used to generate the words
+	 * @return the words
+	 */
+	public static String[] createWords(Random rng) {
+		String[] words = new String[NUM_WORDS];
 		final int wordSizeRange = MAX_WORD_LENGTH - MIN_WORD_LENGTH;
 		final char[] chars = new char[MAX_WORD_LENGTH];
 		int endIndex = 0;
 		for (int i = 0; i < NUM_WORDS; ++i) {
-			int wordLength = MIN_WORD_LENGTH + nextInt(wordSizeRange);
+			int wordLength = MIN_WORD_LENGTH + rng.nextInt(wordSizeRange);
 			while (endIndex < wordLength) {
-				chars[endIndex] = ALPHABET.charAt(nextInt(ALPHABET_SIZE));
+				chars[endIndex] = ALPHABET.charAt(rng.nextInt(ALPHABET_SIZE));
 				endIndex++;
 			}
 
 			words[i] = new String(chars, 0, endIndex);
 			endIndex = 0;
 		}
+		return words;
 	}
 	
 	/**
 	 * Seeds this value generator from the given values.
 	 */
-	public ValueGenerator(int state1, int state2, int state3, int state4,
+	public ValueGenerator(String[] words, int state1, int state2, int state3, int state4,
 			int state5) {
 		this.state1 = state1;
 		this.state2 = state2;
 		this.state3 = state3;
 		this.state4 = state4;
 		this.state5 = state5;
-		words = new String[NUM_WORDS];
-		createWords();
+		this.words = words;
 		wordJoiner = new WordJoiner();
 	}
 
 	/**
 	 * Seeds this value generator from the given {@link Random} instance.
 	 */
-	public ValueGenerator(Random rng) {
-		this(rng.nextInt(), rng.nextInt(), rng.nextInt(), rng.nextInt(), rng
-				.nextInt());
+	public ValueGenerator(String[] words, Random rng) {
+		this(words, rng.nextInt(), rng.nextInt(), rng.nextInt(), rng.nextInt(), rng.nextInt());
 	}
 
 	private int next(int bits) {

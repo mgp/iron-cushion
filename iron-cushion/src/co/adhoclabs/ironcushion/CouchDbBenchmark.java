@@ -20,7 +20,8 @@ import co.adhoclabs.ironcushion.crud.CrudOperations.CrudOperationCounts;
  */
 public class CouchDbBenchmark {
 	private static void performCrudOperations(ParsedArguments parsedArguments,
-			DocumentSchema schema, HttpReactor httpReactor, Random rng) throws BenchmarkException {
+			DocumentSchema schema, HttpReactor httpReactor, String[] words,
+			Random rng) throws BenchmarkException {
 		// Create the CRUD operation path.
 		StringBuilder sb = new StringBuilder();
 		sb.append('/').append(parsedArguments.databaseName);
@@ -33,7 +34,7 @@ public class CouchDbBenchmark {
 				parsedArguments);
 		for (int i = 0; i < parsedArguments.numConnections; ++i) {
 			CrudOperations crudOperations = CrudOperations.createCrudOperations(
-					i, schema, new ValueGenerator(rng), parsedArguments, crudOperationCounts);
+					i, schema, new ValueGenerator(words, rng), parsedArguments, crudOperationCounts);
 			allCrudOperations.add(crudOperations);
 		}
 
@@ -55,7 +56,8 @@ public class CouchDbBenchmark {
 	}
 	
 	private static void performBulkInserts(ParsedArguments parsedArguments,
-			DocumentSchema schema, HttpReactor httpReactor, Random rng) throws BenchmarkException {
+			DocumentSchema schema, HttpReactor httpReactor, String[] words,
+			Random rng) throws BenchmarkException {
 		
 		// Create the bulk insert path.
 		StringBuilder sb = new StringBuilder();
@@ -67,7 +69,7 @@ public class CouchDbBenchmark {
 				parsedArguments.numConnections);
 		for (int i = 0; i < parsedArguments.numConnections; ++i) {
 			BulkInsertDocumentGenerator bulkInsertDocumentGenerator = BulkInsertDocumentGenerator.preComputed(
-					schema, new ValueGenerator(rng), i,
+					schema, new ValueGenerator(words, rng), i,
 					parsedArguments.numDocumentsPerBulkInsert,
 					parsedArguments.numBulkInsertOperations);
 			allBulkInsertDocumentGenerators.add(bulkInsertDocumentGenerator);
@@ -111,10 +113,11 @@ public class CouchDbBenchmark {
 		InetSocketAddress databaseAddress = new InetSocketAddress(
 				databaseUri.getHost(), databaseUri.getPort());
 		HttpReactor httpReactor = new HttpReactor(parsedArguments.numConnections, databaseAddress);
+		String[] words = ValueGenerator.createWords(rng);
 		
 		// Perform the bulk inserts.
-		performBulkInserts(parsedArguments, schema, httpReactor, rng);
+		performBulkInserts(parsedArguments, schema, httpReactor, words, rng);
 		// Perform the CRUD operations.
-		performCrudOperations(parsedArguments, schema, httpReactor, rng);
+		performCrudOperations(parsedArguments, schema, httpReactor, words, rng);
 	}
 }
