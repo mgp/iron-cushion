@@ -40,6 +40,74 @@ public class BenchmarkResults {
 			this.remoteProcessingStatistics = remoteProcessingStatistics;
 			this.receiveDataStatistics = receiveDataStatistics;
 		}
+		
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append("timeTaken=").append(timeTaken).append("\n");
+			sb.append("totalBytesSent=").append(totalBytesSent).append("\n");
+			sb.append("totalBytesReceived=").append(totalBytesReceived).append("\n");
+			sb.append("localProcessing={").append(localProcessingStatistics).append("}\n");
+			sb.append("sendData={").append(sendDataStatistics).append("}\n");
+			sb.append("remoteProcessing={").append(remoteProcessingStatistics).append("}\n");
+			sb.append("receiveDataStatistics={").append(receiveDataStatistics).append("}\n");
+			return sb.toString();
+		}
+	}
+
+	/**
+	 * Benchmark results for CRUD operations.
+	 */
+	public static final class CrudBenchmarkResults {
+		public final long timeTaken;
+		public final long totalBytesSent;
+		public final long totalBytesReceived;
+		
+		public final SampleStatistics localProcessingStatistics;
+		public final SampleStatistics sendDataStatistics;
+		public final SampleStatistics remoteCreateProcessingStatistics;
+		public final SampleStatistics remoteReadProcessingStatistics;
+		public final SampleStatistics remoteUpdateProcessingStatistics;
+		public final SampleStatistics remoteDeleteProcessingStatistics;
+		public final SampleStatistics receiveDataStatistics;
+		
+		public CrudBenchmarkResults(long timeTaken,
+				long totalBytesSent,
+				long totalBytesReceived,
+				SampleStatistics localProcessingStatistics,
+				SampleStatistics sendDataStatistics,
+				SampleStatistics remoteCreateProcessingStatistics,
+				SampleStatistics remoteReadProcessingStatistics,
+				SampleStatistics remoteUpdateProcessingStatistics,
+				SampleStatistics remoteDeleteProcessingStatistics,
+				SampleStatistics receiveDataStatistics) {
+			this.timeTaken = timeTaken;
+			this.totalBytesSent = totalBytesSent;
+			this.totalBytesReceived = totalBytesReceived;
+			this.localProcessingStatistics = localProcessingStatistics;
+			this.sendDataStatistics = sendDataStatistics;
+			this.remoteCreateProcessingStatistics = remoteCreateProcessingStatistics;
+			this.remoteReadProcessingStatistics = remoteReadProcessingStatistics;
+			this.remoteUpdateProcessingStatistics = remoteUpdateProcessingStatistics;
+			this.remoteDeleteProcessingStatistics = remoteDeleteProcessingStatistics;
+			this.receiveDataStatistics = receiveDataStatistics;
+		}
+		
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append("timeTaken=").append(timeTaken).append("\n");
+			sb.append("totalBytesSent=").append(totalBytesSent).append("\n");
+			sb.append("totalBytesReceived=").append(totalBytesReceived).append("\n");
+			sb.append("localProcessing={").append(localProcessingStatistics).append("}\n");
+			sb.append("sendData={").append(sendDataStatistics).append("}\n");
+			sb.append("remoteCreateProcessing={").append(remoteCreateProcessingStatistics).append("}\n");
+			sb.append("remoteReadProcessing={").append(remoteReadProcessingStatistics).append("}\n");
+			sb.append("remoteUpdateProcessing={").append(remoteUpdateProcessingStatistics).append("}\n");
+			sb.append("remoteDeleteProcessing={").append(remoteDeleteProcessingStatistics).append("}\n");
+			sb.append("receiveDataStatistics={").append(receiveDataStatistics).append("}\n");
+			return sb.toString();
+		}
 	}
 
 	private static long getTimeTaken(
@@ -138,45 +206,6 @@ public class BenchmarkResults {
 				receiveDataStatistics);
 	}
 	
-	/**
-	 * Benchmark results for CRUD operations.
-	 */
-	public static final class CrudBenchmarkResults {
-		public final long timeTaken;
-		public final long totalBytesSent;
-		public final long totalBytesReceived;
-		
-		public final SampleStatistics localProcessingStatistics;
-		public final SampleStatistics sendDataStatistics;
-		public final SampleStatistics remoteCreateProcessingStatistics;
-		public final SampleStatistics remoteReadProcessingStatistics;
-		public final SampleStatistics remoteUpdateProcessingStatistics;
-		public final SampleStatistics remoteDeleteProcessingStatistics;
-		public final SampleStatistics receiveDataStatistics;
-		
-		public CrudBenchmarkResults(long timeTaken,
-				long totalBytesSent,
-				long totalBytesReceived,
-				SampleStatistics localProcessingStatistics,
-				SampleStatistics sendDataStatistics,
-				SampleStatistics remoteCreateProcessingStatistics,
-				SampleStatistics remoteReadProcessingStatistics,
-				SampleStatistics remoteUpdateProcessingStatistics,
-				SampleStatistics remoteDeleteProcessingStatistics,
-				SampleStatistics receiveDataStatistics) {
-			this.timeTaken = timeTaken;
-			this.totalBytesSent = totalBytesSent;
-			this.totalBytesReceived = totalBytesReceived;
-			this.localProcessingStatistics = localProcessingStatistics;
-			this.sendDataStatistics = sendDataStatistics;
-			this.remoteCreateProcessingStatistics = remoteCreateProcessingStatistics;
-			this.remoteReadProcessingStatistics = remoteReadProcessingStatistics;
-			this.remoteUpdateProcessingStatistics = remoteUpdateProcessingStatistics;
-			this.remoteDeleteProcessingStatistics = remoteDeleteProcessingStatistics;
-			this.receiveDataStatistics = receiveDataStatistics;
-		}
-	}
-
 	/**
 	 * Returns benchmark results for the connection statistics for CRUD operations.
 	 * 
@@ -287,6 +316,21 @@ public class BenchmarkResults {
 			double deviation = Math.sqrt(variance);
 			
 			return new SampleStatistics(min, max, sum, mean, median, deviation);
+		}
+		
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append("min=").append(min);
+			sb.append(" max=").append(max);
+			sb.append(" median=").append(median);
+			sb.append(" stdev=").append(deviation);
+			return sb.toString();
+		}
+		
+		public String toString(String title) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(title).append(": ").append(toString());
+			return sb.toString();
 		}
 	}
 }
