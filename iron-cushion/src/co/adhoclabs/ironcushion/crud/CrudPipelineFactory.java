@@ -17,7 +17,7 @@ import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public class CrudPipelineFactory extends AbstractBenchmarkPipelineFactory {
-	private final List<CrudConnectionTimers> allConnectionTimers;
+	private final List<CrudConnectionStatistics> allConnectionStatistics;
 	private final List<CrudOperations> allCrudOperations;
 	private final String crudPath;
 
@@ -28,9 +28,9 @@ public class CrudPipelineFactory extends AbstractBenchmarkPipelineFactory {
 			ResponseHandler responseHandler) {
 		super(numConnections, responseHandler);
 		
-		this.allConnectionTimers = new ArrayList<CrudConnectionTimers>(numConnections);
+		this.allConnectionStatistics = new ArrayList<CrudConnectionStatistics>(numConnections);
 		for (int i = 0; i < numConnections; ++i) {
-			this.allConnectionTimers.add(new CrudConnectionTimers());
+			this.allConnectionStatistics.add(new CrudConnectionStatistics());
 		}
 		this.allCrudOperations = allCrudOperations;
 		this.crudPath = crudPath;
@@ -39,21 +39,21 @@ public class CrudPipelineFactory extends AbstractBenchmarkPipelineFactory {
 	}
 	
 	/**
-	 * @return the {@link CrudConnectionTimers} used by connections
+	 * @return the {@link CrudConnectionStatistics} used by connections
 	 */
-	public List<CrudConnectionTimers> getAllConnectionTimers() {
-		return allConnectionTimers;
+	public List<CrudConnectionStatistics> getAllConnectionStatistics() {
+		return allConnectionStatistics;
 	}
 	
 	@Override
 	public ChannelPipeline getPipeline() throws Exception {
-		CrudConnectionTimers connectionTimers = allConnectionTimers.get(connectionNum);
+		CrudConnectionStatistics connectionStatistics = allConnectionStatistics.get(connectionNum);
 		CrudOperations crudOperations = allCrudOperations.get(connectionNum);
 		connectionNum++;
 		return Channels.pipeline(
 				new HttpClientCodec(),
 				// new HttpContentDecompressor(),
-				new CrudHandler(connectionTimers, crudOperations, crudPath, responseHandler, countDownLatch)
+				new CrudHandler(connectionStatistics, crudOperations, crudPath, responseHandler, countDownLatch)
 				);
 	}
 }

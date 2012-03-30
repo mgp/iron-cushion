@@ -17,7 +17,7 @@ import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public class BulkInsertPipelineFactory extends AbstractBenchmarkPipelineFactory {
-	private final List<BulkInsertConnectionTimers> allConnectionTimers;
+	private final List<BulkInsertConnectionStatistics> allConnectionStatistics;
 	private final List<BulkInsertDocuments> allBulkInsertDocuments;
 	private final String bulkInsertPath;
 	
@@ -28,9 +28,9 @@ public class BulkInsertPipelineFactory extends AbstractBenchmarkPipelineFactory 
 			ResponseHandler responseHandler) {
 		super(numConnections, responseHandler);
 		
-		this.allConnectionTimers = new ArrayList<BulkInsertConnectionTimers>();
+		this.allConnectionStatistics = new ArrayList<BulkInsertConnectionStatistics>();
 		for (int i = 0; i < numConnections; ++i) {
-			allConnectionTimers.add(new BulkInsertConnectionTimers());
+			allConnectionStatistics.add(new BulkInsertConnectionStatistics());
 		}
 		this.allBulkInsertDocuments = allBulkInsertDocuments;
 		this.bulkInsertPath = bulkInsertPath;
@@ -39,21 +39,21 @@ public class BulkInsertPipelineFactory extends AbstractBenchmarkPipelineFactory 
 	}
 
 	/**
-	 * @return the {@link BulkInsertConnectionTimers} used by connections
+	 * @return the {@link BulkInsertConnectionStatistics} used by connections
 	 */
-	public List<BulkInsertConnectionTimers> getAllConnectionTimers() {
-		return allConnectionTimers;
+	public List<BulkInsertConnectionStatistics> getAllConnectionStatistics() {
+		return allConnectionStatistics;
 	}
 	
 	@Override
 	public ChannelPipeline getPipeline() throws Exception {
-		BulkInsertConnectionTimers connectionTimers = allConnectionTimers.get(connectionNum);
+		BulkInsertConnectionStatistics connectionStatistics = allConnectionStatistics.get(connectionNum);
 		BulkInsertDocuments documents = allBulkInsertDocuments.get(connectionNum);
 		connectionNum++;
 		return Channels.pipeline(
 				new HttpClientCodec(),
 				// new HttpContentDecompressor(),
-				new BulkInsertHandler(connectionTimers, documents, bulkInsertPath, responseHandler, countDownLatch)
+				new BulkInsertHandler(connectionStatistics, documents, bulkInsertPath, responseHandler, countDownLatch)
 				);
 	}
 }

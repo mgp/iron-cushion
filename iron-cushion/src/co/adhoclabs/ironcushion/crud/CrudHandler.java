@@ -26,7 +26,7 @@ import org.json.simple.parser.ParseException;
 import co.adhoclabs.ironcushion.AbstractBenchmarkHandler;
 import co.adhoclabs.ironcushion.BenchmarkException;
 import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
-import co.adhoclabs.ironcushion.crud.CrudConnectionTimers.RunningConnectionTimer;
+import co.adhoclabs.ironcushion.crud.CrudConnectionStatistics.RunningConnectionTimer;
 
 /**
  * The {@link SimpleChannelUpstreamHandler} implementation for use in the CRUD
@@ -35,7 +35,7 @@ import co.adhoclabs.ironcushion.crud.CrudConnectionTimers.RunningConnectionTimer
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public class CrudHandler extends AbstractBenchmarkHandler {
-	private final CrudConnectionTimers connectionTimers;
+	private final CrudConnectionStatistics connectionStatistics;
 	private final CrudOperations crudOperations;
 	private final String crudPath;
 	
@@ -47,12 +47,12 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 	private JSONObject document;
 	private int crudOperationsCompleted;
 	
-	public CrudHandler(CrudConnectionTimers connectionTimers,
+	public CrudHandler(CrudConnectionStatistics connectionStatistics,
 			CrudOperations crudOperations, String crudPath, ResponseHandler responseHandler,
 			CountDownLatch countDownLatch) {
 		super(responseHandler, countDownLatch);
 		
-		this.connectionTimers = connectionTimers;
+		this.connectionStatistics = connectionStatistics;
 		this.crudOperations = crudOperations;
 		this.crudPath = crudPath;
 		
@@ -71,8 +71,8 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		@Override
 		public void operationComplete(ChannelFuture channelFuture) throws Exception {
 			// Guard against starting RECEIVE_DATA before this listener runs. 
-			if (connectionTimers.getRunningConnectionTimer() == RunningConnectionTimer.SEND_DATA) {
-				connectionTimers.startRemoteCreateProcessing();
+			if (connectionStatistics.getRunningConnectionTimer() == RunningConnectionTimer.SEND_DATA) {
+				connectionStatistics.startRemoteCreateProcessing();
 			}
 		}
 	}
@@ -84,8 +84,8 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		@Override
 		public void operationComplete(ChannelFuture channelFuture) throws Exception {
 			// Guard against starting RECEIVE_DATA before this listener runs. 
-			if (connectionTimers.getRunningConnectionTimer() == RunningConnectionTimer.SEND_DATA) {
-				connectionTimers.startRemoteReadProcessing();
+			if (connectionStatistics.getRunningConnectionTimer() == RunningConnectionTimer.SEND_DATA) {
+				connectionStatistics.startRemoteReadProcessing();
 			}
 		}
 	}
@@ -97,8 +97,8 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		@Override
 		public void operationComplete(ChannelFuture channelFuture) throws Exception {
 			// Guard against starting RECEIVE_DATA before this listener runs. 
-			if (connectionTimers.getRunningConnectionTimer() == RunningConnectionTimer.SEND_DATA) {
-				connectionTimers.startRemoteUpdateProcessing();
+			if (connectionStatistics.getRunningConnectionTimer() == RunningConnectionTimer.SEND_DATA) {
+				connectionStatistics.startRemoteUpdateProcessing();
 			}
 		}
 	}
@@ -110,8 +110,8 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 		@Override
 		public void operationComplete(ChannelFuture channelFuture) throws Exception {
 			// Guard against starting RECEIVE_DATA before this listener runs. 
-			if (connectionTimers.getRunningConnectionTimer() == RunningConnectionTimer.SEND_DATA) {
-				connectionTimers.startRemoteDeleteProcessing();
+			if (connectionStatistics.getRunningConnectionTimer() == RunningConnectionTimer.SEND_DATA) {
+				connectionStatistics.startRemoteDeleteProcessing();
 			}
 		}
 	}
@@ -148,7 +148,7 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 			request.setContent(contentBuffer);
 		}
 		
-		connectionTimers.startSendData();
+		connectionStatistics.startSendData();
 		ChannelFuture channelFuture = channel.write(request);
 		channelFuture.addListener(channelFutureListener);
 	}
@@ -188,7 +188,7 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 	}
 	
 	private void performNextOperation(Channel channel) {
-		connectionTimers.startLocalProcessing();
+		connectionStatistics.startLocalProcessing();
 
 		switch (crudOperations.getOperation(crudOperationsCompleted)) {
 		case CREATE:
@@ -247,7 +247,7 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 	
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
 		// TODO: Method performNextOperation already does this.
-		connectionTimers.startLocalProcessing();
+		connectionStatistics.startLocalProcessing();
 		
 		Channel channel = e.getChannel();
 		HttpResponse response = (HttpResponse) e.getMessage();

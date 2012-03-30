@@ -22,7 +22,7 @@ import org.jboss.netty.util.CharsetUtil;
 
 import co.adhoclabs.ironcushion.AbstractBenchmarkHandler;
 import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
-import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionTimers.RunningConnectionTimer;
+import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionStatistics.RunningConnectionTimer;
 
 /**
  * The {@link SimpleChannelUpstreamHandler} implementation for use in the bulk
@@ -31,7 +31,7 @@ import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionTimers.RunningCon
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public class BulkInsertHandler extends AbstractBenchmarkHandler {
-	private final BulkInsertConnectionTimers connectionTimers;
+	private final BulkInsertConnectionStatistics connectionStatistics;
 	private final BulkInsertDocuments bulkInsertDocuments;
 	private final String bulkInsertPath;
 	
@@ -40,12 +40,12 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 	private int insertOperationsCompleted;
 	private boolean readingChunks;
 	
-	public BulkInsertHandler(BulkInsertConnectionTimers connectionTimers,
+	public BulkInsertHandler(BulkInsertConnectionStatistics connectionStatistics,
 			BulkInsertDocuments documents, String bulkInsertPath, ResponseHandler responseHandler,
 			CountDownLatch countDownLatch) {
 		super(responseHandler, countDownLatch);
 		
-		this.connectionTimers = connectionTimers;
+		this.connectionStatistics = connectionStatistics;
 		this.bulkInsertDocuments = documents;
 		this.bulkInsertPath = bulkInsertPath;
 		
@@ -61,8 +61,8 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 		@Override
 		public void operationComplete(ChannelFuture channelFuture) throws Exception {
 			// Guard against starting RECEIVE_DATA before this listener runs. 
-			if (connectionTimers.getRunningConnectionTimer() == RunningConnectionTimer.SEND_DATA) {
-				connectionTimers.startRemoteProcessing();
+			if (connectionStatistics.getRunningConnectionTimer() == RunningConnectionTimer.SEND_DATA) {
+				connectionStatistics.startRemoteProcessing();
 			}
 		}
 	}
@@ -78,7 +78,7 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 	}
 	
 	private void writeNextBulkInsert(Channel channel) {
-		connectionTimers.startLocalProcessing();
+		connectionStatistics.startLocalProcessing();
 		HttpRequest request = new DefaultHttpRequest(
 				HttpVersion.HTTP_1_1, HttpMethod.POST, bulkInsertPath);
 		ChannelBuffer insertBuffer = bulkInsertDocuments.getBuffer(insertOperationsCompleted);
@@ -90,7 +90,7 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 		// Assign the body.
 		request.setContent(insertBuffer);
 		
-		connectionTimers.startSendData();
+		connectionStatistics.startSendData();
 		ChannelFuture channelFuture = channel.write(request);
 		channelFuture.addListener(sendDataChannelFuture);
 		insertOperationsCompleted++;
@@ -104,7 +104,7 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 	
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-		connectionTimers.startReceiveData();
+		connectionStatistics.startReceiveData();
 		
 		Channel channel = e.getChannel();
 		if (!readingChunks) {

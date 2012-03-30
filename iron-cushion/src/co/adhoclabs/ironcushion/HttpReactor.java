@@ -1,7 +1,6 @@
 package co.adhoclabs.ironcushion;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -9,14 +8,12 @@ import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
-import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionTimers;
+import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionStatistics;
 import co.adhoclabs.ironcushion.bulkinsert.BulkInsertDocuments;
 import co.adhoclabs.ironcushion.bulkinsert.BulkInsertPipelineFactory;
-import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionTimers.BulkInsertConnectionTimes;
-import co.adhoclabs.ironcushion.crud.CrudConnectionTimers;
+import co.adhoclabs.ironcushion.crud.CrudConnectionStatistics;
 import co.adhoclabs.ironcushion.crud.CrudOperations;
 import co.adhoclabs.ironcushion.crud.CrudPipelineFactory;
-import co.adhoclabs.ironcushion.crud.CrudConnectionTimers.CrudConnectionTimes;
 
 /**
  * The networking engine that asynchronously executes HTTP requests.
@@ -105,7 +102,7 @@ public class HttpReactor {
 		}
 	}
 	
-	public List<BulkInsertConnectionTimes> performBulkInserts(List<BulkInsertDocuments> allBulkInsertDocuments,
+	public List<BulkInsertConnectionStatistics> performBulkInserts(List<BulkInsertDocuments> allBulkInsertDocuments,
 			String bulkInsertPath) throws BenchmarkException {
 		// Run the bulk inserts.
 		BulkInsertPipelineFactory bulkInsertPipelineFactory = new BulkInsertPipelineFactory(
@@ -114,14 +111,10 @@ public class HttpReactor {
 		run(bulkInsertPipelineFactory);
 		
 		// Return the times for each connection.
-		List<BulkInsertConnectionTimes> allConnectionTimes = new ArrayList<BulkInsertConnectionTimes>(numConnections);
-		for (BulkInsertConnectionTimers connectionTimers : bulkInsertPipelineFactory.getAllConnectionTimers()) {
-			allConnectionTimes.add(connectionTimers.getConnectionTimes());
-		}
-		return allConnectionTimes;
+		return bulkInsertPipelineFactory.getAllConnectionStatistics();
 	}
 	
-	public List<CrudConnectionTimes> performCrudOperations(List<CrudOperations> allCrudOperations,
+	public List<CrudConnectionStatistics> performCrudOperations(List<CrudOperations> allCrudOperations,
 			String crudPath) throws BenchmarkException {
 		// Run the CRUD operations.
 		CrudPipelineFactory crudPipelineFactory = new CrudPipelineFactory(
@@ -129,10 +122,6 @@ public class HttpReactor {
 		run(crudPipelineFactory);
 		
 		// Return the times for each connection.
-		List<CrudConnectionTimes> allConnectionTimes = new ArrayList<CrudConnectionTimes>(numConnections);
-		for (CrudConnectionTimers connectionTimers : crudPipelineFactory.getAllConnectionTimers()) {
-			allConnectionTimes.add(connectionTimers.getConnectionTimes());
-		}
-		return allConnectionTimes;
+		return crudPipelineFactory.getAllConnectionStatistics();
 	}
 }

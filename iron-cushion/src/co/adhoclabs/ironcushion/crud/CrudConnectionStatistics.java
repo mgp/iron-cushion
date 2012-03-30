@@ -1,20 +1,20 @@
 package co.adhoclabs.ironcushion.crud;
 
-import co.adhoclabs.ironcushion.AbstractConnectionTimers;
+import co.adhoclabs.ironcushion.AbstractConnectionStatistics;
 import co.adhoclabs.ironcushion.Timer;
 
 /**
- * Timers that breakdown how a connection performing CRUD operations spends its time.
+ * Statistics for a connection performing CRUD operations.
  * 
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
-public class CrudConnectionTimers extends AbstractConnectionTimers {
+public class CrudConnectionStatistics extends AbstractConnectionStatistics {
 	private final Timer remoteCreateProcessingTimer;
 	private final Timer remoteReadProcessingTimer;
 	private final Timer remoteUpdateProcessingTimer;
 	private final Timer remoteDeleteProcessingTimer;
 	
-	public CrudConnectionTimers() {
+	public CrudConnectionStatistics() {
 		super();
 		remoteCreateProcessingTimer = new Timer();
 		remoteReadProcessingTimer = new Timer();
@@ -45,46 +45,9 @@ public class CrudConnectionTimers extends AbstractConnectionTimers {
 	}
 	
 	/**
-	 * A breakdown of how a connection performing CRUD operations spent its time.
-	 */
-	public static final class CrudConnectionTimes extends AbstractConnectionTimes {
-		/**
-		 * Milliseconds devoted to remote processing create operations.
-		 */
-		public final long remoteCreateProcessingMillis;
-		/**
-		 * Milliseconds devoted to remote processing read operations.
-		 */
-		public final long remoteReadProcessingMillis;
-		/**
-		 * Milliseconds devoted to remote processing update operations.
-		 */
-		public final long remoteUpdateProcessingMillis;
-		/**
-		 * Milliseconds devoted to remote processing delete operations.
-		 */
-		public final long remoteDeleteProcessingMillis;
-		
-		public CrudConnectionTimes(long localProcessingMillis,
-				long sendDataMillis,
-				long remoteCreateProcessingMillis,
-				long remoteReadProcessingMillis,
-				long remoteUpdateProcessingMillis,
-				long remoteDeleteProcessingMillis,
-				long receiveDataMillis) {
-			super(localProcessingMillis,
-					sendDataMillis,
-					receiveDataMillis);
-			this.remoteCreateProcessingMillis = remoteCreateProcessingMillis;
-			this.remoteReadProcessingMillis = remoteReadProcessingMillis;
-			this.remoteUpdateProcessingMillis = remoteUpdateProcessingMillis;
-			this.remoteDeleteProcessingMillis = remoteDeleteProcessingMillis;
-		}
-	}
-	
-	/**
 	 * Stops whichever timer is running.
 	 */
+	@Override
 	public void stop() {
 		if (runningTimer != null) {
 			switch (runningTimer) {
@@ -191,27 +154,5 @@ public class CrudConnectionTimers extends AbstractConnectionTimers {
 		stop();
 		receiveDataTimer.start();
 		runningTimer = RunningConnectionTimer.RECEIVE_DATA;
-	}
-	
-	/**
-	 * @return a {@link ConnectionTimes} instance
-	 */
-	public CrudConnectionTimes getConnectionTimes() {
-		return new CrudConnectionTimes(localProcessingTimer.getTotalTimeMillis(),
-				sendDataTimer.getTotalTimeMillis(),
-				remoteCreateProcessingTimer.getTotalTimeMillis(),
-				remoteReadProcessingTimer.getTotalTimeMillis(),
-				remoteUpdateProcessingTimer.getTotalTimeMillis(),
-				remoteDeleteProcessingTimer.getTotalTimeMillis(),
-				receiveDataTimer.getTotalTimeMillis());
-	}
-
-	@Override
-	public void reset() {
-		super.reset();
-		remoteCreateProcessingTimer.reset();
-		remoteReadProcessingTimer.reset();
-		remoteUpdateProcessingTimer.reset();
-		remoteDeleteProcessingTimer.reset();
 	}
 }

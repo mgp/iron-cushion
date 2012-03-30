@@ -13,12 +13,7 @@ public class Timer {
 		totalTimeMillis = 0;
 		startTime = 0;
 	}
-	
-	public void reset() {
-		totalTimeMillis = 0;
-		startTime = 0;
-	}
-	
+
 	public void start() {
 		startTime = System.nanoTime();
 	}

@@ -7,11 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionStatistics;
 import co.adhoclabs.ironcushion.bulkinsert.BulkInsertDocuments;
-import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionTimers.BulkInsertConnectionTimes;
-import co.adhoclabs.ironcushion.crud.CrudConnectionTimers.CrudConnectionTimes;
-import co.adhoclabs.ironcushion.crud.CrudOperations.CrudOperationCounts;
+import co.adhoclabs.ironcushion.crud.CrudConnectionStatistics;
 import co.adhoclabs.ironcushion.crud.CrudOperations;
+import co.adhoclabs.ironcushion.crud.CrudOperations.CrudOperationCounts;
 
 /**
  * Benchmark utility for CouchDB.
@@ -61,15 +61,17 @@ public class CouchDbBenchmark {
 		
 		// Perform the bulk insert operations.
 		HttpReactor httpReactor = new HttpReactor(parsedArguments.numConnections, databaseAddress);
-		List<BulkInsertConnectionTimes> allBulkInsertConnectionTimes = httpReactor.performBulkInserts(
+		List<BulkInsertConnectionStatistics> allBulkInsertConnectionTimes = httpReactor.performBulkInserts(
 				allBulkInsertDocuments, bulkInsertPath);
 		
 		// Print the results.
-		BulkInsertConnectionTimes firstConnectionTimes = allBulkInsertConnectionTimes.get(0);
-		System.out.println("localProcessingMillis=" + firstConnectionTimes.localProcessingMillis);
-		System.out.println("sendDataMillis=" + firstConnectionTimes.sendDataMillis);
-		System.out.println("remoteProcessingMillis=" + firstConnectionTimes.remoteProcessingMillis);
-		System.out.println("receiveDataMillis=" + firstConnectionTimes.receiveDataMillis);
+		BulkInsertConnectionStatistics firstConnectionTimes = allBulkInsertConnectionTimes.get(0);
+		System.out.println("jsonBytesSent=" + firstConnectionTimes.getJsonBytesSent());
+		System.out.println("jsonBytesReceived=" + firstConnectionTimes.getJsonBytesReceived());
+		System.out.println("localProcessingMillis=" + firstConnectionTimes.getLocalProcessingTimeMillis());
+		System.out.println("sendDataMillis=" + firstConnectionTimes.getSendDataTimeMillis());
+		System.out.println("remoteProcessingMillis=" + firstConnectionTimes.getRemoteProcessingTimeMillis());
+		System.out.println("receiveDataMillis=" + firstConnectionTimes.getReceivedDataTimeMillis());
 		
 		// Create the CRUD operation path.
 		sb = new StringBuilder();
@@ -88,7 +90,7 @@ public class CouchDbBenchmark {
 		}
 
 		// Perform the CRUD operations.
-		List<CrudConnectionTimes> allCrudConnectionTimes = httpReactor.performCrudOperations(
+		List<CrudConnectionStatistics> allCrudConnectionTimes = httpReactor.performCrudOperations(
 				allCrudOperations, crudPath);
 		
 		/*
