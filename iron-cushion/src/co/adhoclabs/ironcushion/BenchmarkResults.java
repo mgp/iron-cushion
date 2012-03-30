@@ -223,9 +223,12 @@ public class BenchmarkResults {
 
 		// Calculate the rate of documents inserted per second.
 		long numBulkInsertedDocs = (parsedArguments.numDocumentsPerBulkInsert *
-				parsedArguments.numBulkInsertOperations *
-				parsedArguments.numConnections);
-		double insertRate = numBulkInsertedDocs / (remoteProcessingStatistics.max / 1000.0);
+				parsedArguments.numBulkInsertOperations);
+		double insertRate = 0;
+		for (BulkInsertConnectionStatistics connectionStatistics : allConnectionStatistics) {
+			insertRate += (numBulkInsertedDocs /
+					(connectionStatistics.getRemoteProcessingTimeMillis() / 1000.0));
+		}
 		
 		return new BulkInsertBenchmarkResults(timeTaken,
 				totalBytesSent,
@@ -283,17 +286,29 @@ public class BenchmarkResults {
 		SampleStatistics receiveDataStatistics = getReceiveDataStatistics(allConnectionStatistics);
 
 		// Calculate the rate of documents created per second.
-		long numCreatedDocs = (numConnections * operationCounts.numCreateOperations);
-		double createRate = numCreatedDocs / (remoteCreateProcessingStatistics.max / 1000.0);
+		double createRate = 0;
+		for (CrudConnectionStatistics connectionStatistics : allConnectionStatistics) {
+			createRate += (operationCounts.numCreateOperations /
+					(connectionStatistics.getRemoteCreateProcessingTimeMillis() / 1000.0));
+		}
 		// Calculate the rate of documents read per second.
-		long numReadDocs = (numConnections * operationCounts.numReadOperations);
-		double readRate = numReadDocs / (remoteReadProcessingStatistics.max / 1000.0);
+		double readRate = 0;
+		for (CrudConnectionStatistics connectionStatistics : allConnectionStatistics) {
+			readRate += (operationCounts.numReadOperations /
+					(connectionStatistics.getRemoteReadProcessingTimeMillis() / 1000.0));
+		}
 		// Calculate the rate of documents updated per second.
-		long numUpdatedDocs = (numConnections * operationCounts.numUpdateOperations);
-		double updateRate = numUpdatedDocs / (remoteUpdateProcessingStatistics.max / 1000.0);
+		double updateRate = 0;
+		for (CrudConnectionStatistics connectionStatistics : allConnectionStatistics) {
+			updateRate += (operationCounts.numUpdateOperations /
+					(connectionStatistics.getRemoteUpdateProcessingTimeMillis() / 1000.0));
+		}
 		// Calculate the rate of documents deleted per second.
-		long numDeletedDocs = (numConnections * operationCounts.numDeleteOperations);
-		double deleteRate = numDeletedDocs / (remoteDeleteProcessingStatistics.max / 1000.0);
+		double deleteRate = 0;
+		for (CrudConnectionStatistics connectionStatistics : allConnectionStatistics) {
+			deleteRate += (operationCounts.numDeleteOperations /
+					(connectionStatistics.getRemoteDeleteProcessingTimeMillis() / 1000.0));
+		}
 		
 		return new CrudBenchmarkResults(timeTaken,
 				totalBytesSent,
