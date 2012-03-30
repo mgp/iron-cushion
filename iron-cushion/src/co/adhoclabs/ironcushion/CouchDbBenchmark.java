@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Random;
 
 import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionStatistics;
-import co.adhoclabs.ironcushion.bulkinsert.BulkInsertDocuments;
+import co.adhoclabs.ironcushion.bulkinsert.BulkInsertDocumentGenerator;
 import co.adhoclabs.ironcushion.crud.CrudConnectionStatistics;
 import co.adhoclabs.ironcushion.crud.CrudOperations;
 import co.adhoclabs.ironcushion.crud.CrudOperations.CrudOperationCounts;
@@ -33,14 +33,14 @@ public class CouchDbBenchmark {
 		}
 		// Create the documents to bulk insert from the schema.
 		ValueGenerator valueGenerator = new ValueGenerator(rng);
-		List<BulkInsertDocuments> allBulkInsertDocuments = new ArrayList<BulkInsertDocuments>(
+		List<BulkInsertDocumentGenerator> allBulkInsertDocumentGenerators = new ArrayList<BulkInsertDocumentGenerator>(
 				parsedArguments.numConnections);
 		for (int i = 0; i < parsedArguments.numConnections; ++i) {
-			BulkInsertDocuments bulkInsertDocuments = BulkInsertDocuments.preComputed(
+			BulkInsertDocumentGenerator bulkInsertDocumentGenerator = BulkInsertDocumentGenerator.preComputed(
 					schema, valueGenerator, i,
 					parsedArguments.numDocumentsPerBulkInsert,
 					parsedArguments.numBulkInsertOperations);
-			allBulkInsertDocuments.add(bulkInsertDocuments);
+			allBulkInsertDocumentGenerators.add(bulkInsertDocumentGenerator);
 		}
 		
 		// Create the address of the server.
@@ -62,7 +62,7 @@ public class CouchDbBenchmark {
 		// Perform the bulk insert operations.
 		HttpReactor httpReactor = new HttpReactor(parsedArguments.numConnections, databaseAddress);
 		List<BulkInsertConnectionStatistics> allBulkInsertConnectionTimes = httpReactor.performBulkInserts(
-				allBulkInsertDocuments, bulkInsertPath);
+				allBulkInsertDocumentGenerators, bulkInsertPath);
 		
 		// Print the results.
 		BulkInsertConnectionStatistics firstConnectionTimes = allBulkInsertConnectionTimes.get(0);

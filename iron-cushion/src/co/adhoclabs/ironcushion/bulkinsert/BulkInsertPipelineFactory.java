@@ -18,13 +18,13 @@ import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
  */
 public class BulkInsertPipelineFactory extends AbstractBenchmarkPipelineFactory {
 	private final List<BulkInsertConnectionStatistics> allConnectionStatistics;
-	private final List<BulkInsertDocuments> allBulkInsertDocuments;
+	private final List<BulkInsertDocumentGenerator> allBulkInsertDocumentGenerators;
 	private final String bulkInsertPath;
 	
 	private int connectionNum;
 	
 	public BulkInsertPipelineFactory(int numConnections,
-			List<BulkInsertDocuments> allBulkInsertDocuments, String bulkInsertPath,
+			List<BulkInsertDocumentGenerator> allBulkInsertDocumentGenerators, String bulkInsertPath,
 			ResponseHandler responseHandler) {
 		super(numConnections, responseHandler);
 		
@@ -32,7 +32,7 @@ public class BulkInsertPipelineFactory extends AbstractBenchmarkPipelineFactory 
 		for (int i = 0; i < numConnections; ++i) {
 			allConnectionStatistics.add(new BulkInsertConnectionStatistics());
 		}
-		this.allBulkInsertDocuments = allBulkInsertDocuments;
+		this.allBulkInsertDocumentGenerators = allBulkInsertDocumentGenerators;
 		this.bulkInsertPath = bulkInsertPath;
 		
 		connectionNum = 0;
@@ -48,12 +48,12 @@ public class BulkInsertPipelineFactory extends AbstractBenchmarkPipelineFactory 
 	@Override
 	public ChannelPipeline getPipeline() throws Exception {
 		BulkInsertConnectionStatistics connectionStatistics = allConnectionStatistics.get(connectionNum);
-		BulkInsertDocuments documents = allBulkInsertDocuments.get(connectionNum);
+		BulkInsertDocumentGenerator documentGenerator = allBulkInsertDocumentGenerators.get(connectionNum);
 		connectionNum++;
 		return Channels.pipeline(
 				new HttpClientCodec(),
 				// new HttpContentDecompressor(),
-				new BulkInsertHandler(connectionStatistics, documents, bulkInsertPath, responseHandler, countDownLatch)
+				new BulkInsertHandler(connectionStatistics, documentGenerator, bulkInsertPath, responseHandler, countDownLatch)
 				);
 	}
 }

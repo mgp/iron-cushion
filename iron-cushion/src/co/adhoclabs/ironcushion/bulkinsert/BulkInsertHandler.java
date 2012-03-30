@@ -32,7 +32,7 @@ import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionStatistics.Runnin
  */
 public class BulkInsertHandler extends AbstractBenchmarkHandler {
 	private final BulkInsertConnectionStatistics connectionStatistics;
-	private final BulkInsertDocuments bulkInsertDocuments;
+	private final BulkInsertDocumentGenerator bulkInsertDocumentGenerator;
 	private final String bulkInsertPath;
 	
 	private final SendDataChannelFuture sendDataChannelFuture;
@@ -41,12 +41,12 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 	private boolean readingChunks;
 	
 	public BulkInsertHandler(BulkInsertConnectionStatistics connectionStatistics,
-			BulkInsertDocuments documents, String bulkInsertPath, ResponseHandler responseHandler,
-			CountDownLatch countDownLatch) {
+			BulkInsertDocumentGenerator bulkInsertDocumentGenerator, String bulkInsertPath,
+			ResponseHandler responseHandler, CountDownLatch countDownLatch) {
 		super(responseHandler, countDownLatch);
 		
 		this.connectionStatistics = connectionStatistics;
-		this.bulkInsertDocuments = documents;
+		this.bulkInsertDocumentGenerator = bulkInsertDocumentGenerator;
 		this.bulkInsertPath = bulkInsertPath;
 		
 		this.sendDataChannelFuture = new SendDataChannelFuture();
@@ -68,7 +68,7 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 	}
 	
 	private void writeNextBulkInsertOrClose(Channel channel) {
-		if (insertOperationsCompleted < bulkInsertDocuments.size()) {
+		if (insertOperationsCompleted < bulkInsertDocumentGenerator.size()) {
 			// Perform the next bulk insert operation.
 			writeNextBulkInsert(channel);
 		} else {
@@ -81,7 +81,7 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 		connectionStatistics.startLocalProcessing();
 		HttpRequest request = new DefaultHttpRequest(
 				HttpVersion.HTTP_1_1, HttpMethod.POST, bulkInsertPath);
-		ChannelBuffer insertBuffer = bulkInsertDocuments.getBuffer(insertOperationsCompleted);
+		ChannelBuffer insertBuffer = bulkInsertDocumentGenerator.getBuffer(insertOperationsCompleted);
 		// Assign the headers.
 		request.setHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 		// request.setHeader(HttpHeaders.Names.ACCEPT_ENCODING, HttpHeaders.Values.GZIP);

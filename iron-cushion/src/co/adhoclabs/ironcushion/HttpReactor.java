@@ -9,7 +9,7 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionStatistics;
-import co.adhoclabs.ironcushion.bulkinsert.BulkInsertDocuments;
+import co.adhoclabs.ironcushion.bulkinsert.BulkInsertDocumentGenerator;
 import co.adhoclabs.ironcushion.bulkinsert.BulkInsertPipelineFactory;
 import co.adhoclabs.ironcushion.crud.CrudConnectionStatistics;
 import co.adhoclabs.ironcushion.crud.CrudOperations;
@@ -102,11 +102,12 @@ public class HttpReactor {
 		}
 	}
 	
-	public List<BulkInsertConnectionStatistics> performBulkInserts(List<BulkInsertDocuments> allBulkInsertDocuments,
+	public List<BulkInsertConnectionStatistics> performBulkInserts(
+			List<BulkInsertDocumentGenerator> allBulkInsertDocumentGenerators,
 			String bulkInsertPath) throws BenchmarkException {
 		// Run the bulk inserts.
 		BulkInsertPipelineFactory bulkInsertPipelineFactory = new BulkInsertPipelineFactory(
-				numConnections, allBulkInsertDocuments, bulkInsertPath,
+				numConnections, allBulkInsertDocumentGenerators, bulkInsertPath,
 				NullResponseHandler.INSTANCE);
 		run(bulkInsertPipelineFactory);
 		

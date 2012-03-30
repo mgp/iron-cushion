@@ -13,27 +13,28 @@ import co.adhoclabs.ironcushion.DocumentSchema;
 import co.adhoclabs.ironcushion.ValueGenerator;
 
 /**
- * Returns {@link ChannelBuffer} instances containing JSON documents to be
+ * Generates {@link ChannelBuffer} instances containing JSON documents to be
  * inserted in bulk by one connection.
  * 
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
-public abstract class BulkInsertDocuments {
-	private BulkInsertDocuments() {
+public abstract class BulkInsertDocumentGenerator {
+	private BulkInsertDocumentGenerator() {
 	}
 
 	/**
-	 * Returns a {@link ChannelBuffer} containing documents to be bulk inserted.
+	 * Returns a generated {@link ChannelBuffer} containing documents to be bulk
+	 * inserted.
 	 * 
 	 * @param insertOperation
 	 *            the index of the bulk insert operation, greater than {@code 0}
 	 *            but less than the value returned by {@link #size()}
-	 * @return the buffer containing the documents
+	 * @return the generated buffer containing the documents
 	 */
 	public abstract ChannelBuffer getBuffer(int insertOperation);
 
 	/**
-	 * Returns number of {@link ChannelBuffer} instances that can be returned.
+	 * Returns number of {@link ChannelBuffer} instances generated.
 	 * 
 	 * @return the number of buffers to return
 	 */
@@ -57,11 +58,11 @@ public abstract class BulkInsertDocuments {
 		return buffer;
 	}
 
-	private static final class PreComputedBulkInsertDocuments extends
-			BulkInsertDocuments {
+	private static final class PreComputedBulkInsertDocumentGenerator extends
+			BulkInsertDocumentGenerator {
 		private final List<ChannelBuffer> insertBuffers;
 
-		private PreComputedBulkInsertDocuments(DocumentSchema schema,
+		private PreComputedBulkInsertDocumentGenerator(DocumentSchema schema,
 				ValueGenerator valueGenerator, int connectionNum,
 				int numDocumentsPerInsert, int numInsertOperations) {
 			int numInsertedDocuments = numDocumentsPerInsert
@@ -85,32 +86,33 @@ public abstract class BulkInsertDocuments {
 	}
 
 	/**
-	 * Returns a {@link BulkInsertDocuments} implementation where all returned
-	 * {@link ChannelBuffer} instances are pre-computed.
+	 * Returns a {@link BulkInsertDocumentGenerator} implementation where all
+	 * returned {@link ChannelBuffer} instances are pre-computed.
 	 * 
-	 * @param schema 
+	 * @param schema
 	 * @param valueGenerator
 	 * @param connectionNum
 	 * @param numDocumentsPerInsert
 	 * @param numInsertOperations
 	 * @return the generator of pre-computed documents
 	 */
-	public static BulkInsertDocuments preComputed(DocumentSchema schema,
-			ValueGenerator valueGenerator, int connectionNum,
-			int numDocumentsPerInsert, int numInsertOperations) {
-		return new PreComputedBulkInsertDocuments(schema, valueGenerator,
+	public static BulkInsertDocumentGenerator preComputed(
+			DocumentSchema schema, ValueGenerator valueGenerator,
+			int connectionNum, int numDocumentsPerInsert,
+			int numInsertOperations) {
+		return new PreComputedBulkInsertDocumentGenerator(schema, valueGenerator,
 				connectionNum, numDocumentsPerInsert, numInsertOperations);
 	}
 
-	private static final class OnDemandBulkInsertDocuments extends
-			BulkInsertDocuments {
+	private static final class OnDemandBulkInsertDocumentGenerator extends
+			BulkInsertDocumentGenerator {
 		private final DocumentSchema schema;
 		private final ValueGenerator valueGenerator;
 		private final int numDocumentsPerInsert;
 		private final int numInsertOperations;
 		private int nextDocumentId;
 
-		private OnDemandBulkInsertDocuments(DocumentSchema schema,
+		private OnDemandBulkInsertDocumentGenerator(DocumentSchema schema,
 				ValueGenerator valueGenerator, int connectionNum,
 				int numDocumentsPerInsert, int numInsertOperations) {
 			this.schema = schema;
@@ -118,7 +120,8 @@ public abstract class BulkInsertDocuments {
 			this.numDocumentsPerInsert = numDocumentsPerInsert;
 			this.numInsertOperations = numInsertOperations;
 
-			int numInsertedDocuments = numDocumentsPerInsert * numInsertOperations;
+			int numInsertedDocuments = numDocumentsPerInsert
+					* numInsertOperations;
 			nextDocumentId = connectionNum * numInsertedDocuments;
 		}
 
@@ -133,8 +136,8 @@ public abstract class BulkInsertDocuments {
 	}
 
 	/**
-	 * Returns a {@link BulkInsertDocuments} implementation where all returned
-	 * {@link ChannelBuffer} instances are computed on-demand.
+	 * Returns a {@link BulkInsertDocumentGenerator} implementation where all
+	 * returned {@link ChannelBuffer} instances are generated on-demand.
 	 * 
 	 * @param schema
 	 * @param valueGenerator
@@ -143,10 +146,10 @@ public abstract class BulkInsertDocuments {
 	 * @param numInsertOperations
 	 * @return an on-demand generator of documents
 	 */
-	public static BulkInsertDocuments onDemand(DocumentSchema schema,
+	public static BulkInsertDocumentGenerator onDemand(DocumentSchema schema,
 			ValueGenerator valueGenerator, int connectionNum,
 			int numDocumentsPerInsert, int numInsertOperations) {
-		return new OnDemandBulkInsertDocuments(schema, valueGenerator,
+		return new OnDemandBulkInsertDocumentGenerator(schema, valueGenerator,
 				connectionNum, numDocumentsPerInsert, numInsertOperations);
 	}
 }
