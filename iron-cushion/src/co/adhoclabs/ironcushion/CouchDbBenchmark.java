@@ -38,8 +38,20 @@ public class CouchDbBenchmark {
 		}
 
 		// Perform the CRUD operations.
-		List<CrudConnectionStatistics> allCrudConnectionTimes = httpReactor.performCrudOperations(
+		List<CrudConnectionStatistics> allCrudConnectionStatistics = httpReactor.performCrudOperations(
 				allCrudOperations, crudPath);
+		CrudConnectionStatistics firstCrudConnectionStatistics = allCrudConnectionStatistics.get(0);
+		System.out.println("CRUD OPERATIONS:");
+		System.out.println("  jsonBytesSent=" + firstCrudConnectionStatistics.getJsonBytesSent());
+		System.out.println("  jsonBytesReceived=" + firstCrudConnectionStatistics.getJsonBytesReceived());
+		System.out.println("  localProcessingMillis=" + firstCrudConnectionStatistics.getLocalProcessingTimeMillis());
+		System.out.println("  sendDataMillis=" + firstCrudConnectionStatistics.getSendDataTimeMillis());
+		System.out.println("  remoteCreateProcessingMillis=" + firstCrudConnectionStatistics.getRemoteCreateProcessingTimeMillis());
+		System.out.println("  remoteReadProcessingMillis=" + firstCrudConnectionStatistics.getRemoteReadProcessingTimeMillis());
+		System.out.println("  remoteUpdateProcessingMillis=" + firstCrudConnectionStatistics.getRemoteUpdateProcessingTimeMillis());
+		System.out.println("  remoteDeleteProcessingMillis=" + firstCrudConnectionStatistics.getRemoteDeleteProcessingTimeMillis());
+		System.out.println("  receiveDataMillis=" + firstCrudConnectionStatistics.getReceivedDataTimeMillis());
+		System.out.println();
 	}
 	
 	private static void performBulkInserts(ParsedArguments parsedArguments,
@@ -51,34 +63,30 @@ public class CouchDbBenchmark {
 		sb.append('/').append("_bulk_docs");
 		String bulkInsertPath = sb.toString();
 
-		List<ValueGenerator> valueGenerators = new ArrayList<ValueGenerator>(
-				parsedArguments.numConnections);
-		for (int i = 0; i < parsedArguments.numConnections; ++i) {
-			valueGenerators.add(new ValueGenerator(rng));
-		}
 		List<BulkInsertDocumentGenerator> allBulkInsertDocumentGenerators = new ArrayList<BulkInsertDocumentGenerator>(
 				parsedArguments.numConnections);
 		for (int i = 0; i < parsedArguments.numConnections; ++i) {
-			ValueGenerator valueGenerator = valueGenerators.get(i);
 			BulkInsertDocumentGenerator bulkInsertDocumentGenerator = BulkInsertDocumentGenerator.preComputed(
-					schema, valueGenerator, i,
+					schema, new ValueGenerator(rng), i,
 					parsedArguments.numDocumentsPerBulkInsert,
 					parsedArguments.numBulkInsertOperations);
 			allBulkInsertDocumentGenerators.add(bulkInsertDocumentGenerator);
 		}
 		
 		// Perform the bulk insert operations.
-		List<BulkInsertConnectionStatistics> allBulkInsertConnectionTimes = httpReactor.performBulkInserts(
+		List<BulkInsertConnectionStatistics> allBulkInsertConnectionStatistics = httpReactor.performBulkInserts(
 				allBulkInsertDocumentGenerators, bulkInsertPath);
 		
 		// Print the results.
-		BulkInsertConnectionStatistics firstConnectionTimes = allBulkInsertConnectionTimes.get(0);
-		System.out.println("jsonBytesSent=" + firstConnectionTimes.getJsonBytesSent());
-		System.out.println("jsonBytesReceived=" + firstConnectionTimes.getJsonBytesReceived());
-		System.out.println("localProcessingMillis=" + firstConnectionTimes.getLocalProcessingTimeMillis());
-		System.out.println("sendDataMillis=" + firstConnectionTimes.getSendDataTimeMillis());
-		System.out.println("remoteProcessingMillis=" + firstConnectionTimes.getRemoteProcessingTimeMillis());
-		System.out.println("receiveDataMillis=" + firstConnectionTimes.getReceivedDataTimeMillis());		
+		BulkInsertConnectionStatistics firstConnectionStatistics = allBulkInsertConnectionStatistics.get(0);
+		System.out.println("BULK INSERTS:");
+		System.out.println("  jsonBytesSent=" + firstConnectionStatistics.getJsonBytesSent());
+		System.out.println("  jsonBytesReceived=" + firstConnectionStatistics.getJsonBytesReceived());
+		System.out.println("  localProcessingMillis=" + firstConnectionStatistics.getLocalProcessingTimeMillis());
+		System.out.println("  sendDataMillis=" + firstConnectionStatistics.getSendDataTimeMillis());
+		System.out.println("  remoteProcessingMillis=" + firstConnectionStatistics.getRemoteProcessingTimeMillis());
+		System.out.println("  receiveDataMillis=" + firstConnectionStatistics.getReceivedDataTimeMillis());
+		System.out.println();
 	}
 	
 	public static void main(String[] args) throws BenchmarkException {

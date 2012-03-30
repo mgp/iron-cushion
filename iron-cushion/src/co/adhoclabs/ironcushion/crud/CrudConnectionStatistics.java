@@ -111,6 +111,13 @@ public class CrudConnectionStatistics extends AbstractConnectionStatistics {
 	}
 	
 	/**
+	 * @return the number of milliseconds spent on remote processing of create operations
+	 */
+	public long getRemoteCreateProcessingTimeMillis() {
+		return remoteCreateProcessingTimer.getTotalTimeMillis();
+	}
+	
+	/**
 	 * Starts the timer for remote processing of read operations.
 	 */
 	public void startRemoteReadProcessing() {
@@ -120,6 +127,13 @@ public class CrudConnectionStatistics extends AbstractConnectionStatistics {
 		stop();
 		remoteReadProcessingTimer.start();
 		runningTimer = RunningConnectionTimer.REMOTE_READ_PROCESSING;
+	}
+	
+	/**
+	 * @return the number of milliseconds spent on remote processing of read operations
+	 */
+	public long getRemoteReadProcessingTimeMillis() {
+		return remoteReadProcessingTimer.getTotalTimeMillis();
 	}
 	
 	/**
@@ -135,6 +149,13 @@ public class CrudConnectionStatistics extends AbstractConnectionStatistics {
 	}
 	
 	/**
+	 * @return the number of milliseconds spent on remote processing of update operations
+	 */
+	public long getRemoteUpdateProcessingTimeMillis() {
+		return remoteUpdateProcessingTimer.getTotalTimeMillis();
+	}
+	
+	/**
 	 * Starts the timer for remote processing of delete operations.
 	 */
 	public void startRemoteDeleteProcessing() {
@@ -146,6 +167,13 @@ public class CrudConnectionStatistics extends AbstractConnectionStatistics {
 		runningTimer = RunningConnectionTimer.REMOTE_DELETE_PROCESSING;
 	}
 
+	/**
+	 * @return the number of milliseconds spent on remote processing of delete operations
+	 */
+	public long getRemoteDeleteProcessingTimeMillis() {
+		return remoteDeleteProcessingTimer.getTotalTimeMillis();
+	}
+	
 	@Override
 	public void startReceiveData() {
 		if (runningTimer == RunningConnectionTimer.RECEIVE_DATA) {
