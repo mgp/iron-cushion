@@ -1,0 +1,20 @@
+{
+    "array1": [
+        [
+            0.0, 
+            0.0
+        ], 
+        {}, 
+        true,
+        null
+    ], 
+    "boolean1": true, 
+    "integer1": 0, 
+    "obj1": {
+        "array2": [], 
+        "obj2": {
+            "boolean2": true
+        }
+    }, 
+    "string1": ""
+}

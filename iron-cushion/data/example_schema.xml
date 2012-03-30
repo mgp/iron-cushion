@@ -1,5 +1,51 @@
 <object>
   <entry>
+    <name>array1</name>
+    <value>
+      <array>
+        <element>
+          <array>
+            <element>
+              <float />
+            </element>
+
+            <element>
+              <float />
+            </element>
+          </array>
+        </element>
+        
+        <element>
+          <object>
+          </object>
+        </element>
+
+        <element>
+          <boolean />
+        </element>
+
+        <element>
+          <null />
+        </element>
+      </array>
+    </value>
+  </entry>
+
+  <entry>
+    <name>boolean1</name>
+    <value>
+      <boolean />
+    </value>
+  </entry>
+
+  <entry>
+    <name>integer1</name>
+    <value>
+      <integer />
+    </value>
+  </entry>
+
+  <entry>
     <name>obj1</name>
     <value>
       <object>
@@ -29,51 +75,9 @@
   </entry>
 
   <entry>
-    <name>array1</name>
-    <value>
-      <array>
-        <element>
-          <array>
-            <element>
-              <float />
-            </element>
-
-            <element>
-              <float />
-            </element>
-          </array>
-        </element>
-        
-        <element>
-          <object>
-          </object>
-        </element>
-
-        <element>
-          <boolean />
-        </element>
-      </array>
-    </value>
-  </entry>
-
-  <entry>
     <name>string1</name>
     <value>
       <string />
-    </value>
-  </entry>
-
-  <entry>
-    <name>integer1</name>
-    <value>
-      <integer />
-    </value>
-  </entry>
-
-  <entry>
-    <name>boolean1</name>
-    <value>
-      <boolean />
     </value>
   </entry>
 </object>
