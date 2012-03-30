@@ -19,62 +19,10 @@ import co.adhoclabs.ironcushion.crud.CrudOperations.CrudOperationCounts;
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public class CouchDbBenchmark {
-	// TODO: Organize this better.
-	public static void main(String[] args) throws BenchmarkException {
-		ParsedArguments parsedArguments = ParsedArguments.parseArguments(args);
-		Random rng = new Random(2012);
-
-		// Create the document schema.
-		DocumentSchema schema = null;
-		if (parsedArguments.jsonDocumentSchemaFile != null) {
-			schema = DocumentSchema.createSchemaFromJson(parsedArguments.jsonDocumentSchemaFile);
-		} else if (parsedArguments.xmlDocumentSchemaFile != null) {
-			schema = DocumentSchema.createSchemaFromXml(parsedArguments.xmlDocumentSchemaFile);
-		}
-		// Create the documents to bulk insert from the schema.
-		ValueGenerator valueGenerator = new ValueGenerator(rng);
-		List<BulkInsertDocumentGenerator> allBulkInsertDocumentGenerators = new ArrayList<BulkInsertDocumentGenerator>(
-				parsedArguments.numConnections);
-		for (int i = 0; i < parsedArguments.numConnections; ++i) {
-			BulkInsertDocumentGenerator bulkInsertDocumentGenerator = BulkInsertDocumentGenerator.preComputed(
-					schema, valueGenerator, i,
-					parsedArguments.numDocumentsPerBulkInsert,
-					parsedArguments.numBulkInsertOperations);
-			allBulkInsertDocumentGenerators.add(bulkInsertDocumentGenerator);
-		}
-		
-		// Create the address of the server.
-		URI databaseUri;
-		try {
-			databaseUri = new URI(parsedArguments.databaseAddress);
-		} catch (URISyntaxException e) {
-			throw new BenchmarkException(e);
-		}
-		InetSocketAddress databaseAddress = new InetSocketAddress(
-				databaseUri.getHost(), databaseUri.getPort());
-		
-		// Create the bulk insert path.
-		StringBuilder sb = new StringBuilder();
-		sb.append('/').append(parsedArguments.databaseName);
-		sb.append('/').append("_bulk_docs");
-		String bulkInsertPath = sb.toString();
-		
-		// Perform the bulk insert operations.
-		HttpReactor httpReactor = new HttpReactor(parsedArguments.numConnections, databaseAddress);
-		List<BulkInsertConnectionStatistics> allBulkInsertConnectionTimes = httpReactor.performBulkInserts(
-				allBulkInsertDocumentGenerators, bulkInsertPath);
-		
-		// Print the results.
-		BulkInsertConnectionStatistics firstConnectionTimes = allBulkInsertConnectionTimes.get(0);
-		System.out.println("jsonBytesSent=" + firstConnectionTimes.getJsonBytesSent());
-		System.out.println("jsonBytesReceived=" + firstConnectionTimes.getJsonBytesReceived());
-		System.out.println("localProcessingMillis=" + firstConnectionTimes.getLocalProcessingTimeMillis());
-		System.out.println("sendDataMillis=" + firstConnectionTimes.getSendDataTimeMillis());
-		System.out.println("remoteProcessingMillis=" + firstConnectionTimes.getRemoteProcessingTimeMillis());
-		System.out.println("receiveDataMillis=" + firstConnectionTimes.getReceivedDataTimeMillis());
-		
+	private static void performCrudOperations(ParsedArguments parsedArguments,
+			DocumentSchema schema, HttpReactor httpReactor, Random rng) throws BenchmarkException {
 		// Create the CRUD operation path.
-		sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder();
 		sb.append('/').append(parsedArguments.databaseName);
 		String crudPath = sb.toString();
 		
@@ -92,19 +40,73 @@ public class CouchDbBenchmark {
 		// Perform the CRUD operations.
 		List<CrudConnectionStatistics> allCrudConnectionTimes = httpReactor.performCrudOperations(
 				allCrudOperations, crudPath);
+	}
+	
+	private static void performBulkInserts(ParsedArguments parsedArguments,
+			DocumentSchema schema, HttpReactor httpReactor, Random rng) throws BenchmarkException {
 		
-		/*
-		httpReactor.performBulkInserts();
-		ScheduledOperations scheduledOperations = ScheduledOperations
-				.scheduleOperations(parsedArguments);
+		// Create the bulk insert path.
+		StringBuilder sb = new StringBuilder();
+		sb.append('/').append(parsedArguments.databaseName);
+		sb.append('/').append("_bulk_docs");
+		String bulkInsertPath = sb.toString();
 
-		System.out.println("Results:");
-		System.out.println("  Time taken: " + results.timeTaken);
-		System.out.println("  Bytes sent: " + results.bytesSent);
-		System.out.println("  Bytes received: " + results.bytesReceived);
-		System.out.println("  Requests per second: "
-				+ results.requestsPerSecond);
-		System.out.println("  Transfer rate: " + results.transferRate);
-		*/
+		List<ValueGenerator> valueGenerators = new ArrayList<ValueGenerator>(
+				parsedArguments.numConnections);
+		for (int i = 0; i < parsedArguments.numConnections; ++i) {
+			valueGenerators.add(new ValueGenerator(rng));
+		}
+		List<BulkInsertDocumentGenerator> allBulkInsertDocumentGenerators = new ArrayList<BulkInsertDocumentGenerator>(
+				parsedArguments.numConnections);
+		for (int i = 0; i < parsedArguments.numConnections; ++i) {
+			ValueGenerator valueGenerator = valueGenerators.get(i);
+			BulkInsertDocumentGenerator bulkInsertDocumentGenerator = BulkInsertDocumentGenerator.preComputed(
+					schema, valueGenerator, i,
+					parsedArguments.numDocumentsPerBulkInsert,
+					parsedArguments.numBulkInsertOperations);
+			allBulkInsertDocumentGenerators.add(bulkInsertDocumentGenerator);
+		}
+		
+		// Perform the bulk insert operations.
+		List<BulkInsertConnectionStatistics> allBulkInsertConnectionTimes = httpReactor.performBulkInserts(
+				allBulkInsertDocumentGenerators, bulkInsertPath);
+		
+		// Print the results.
+		BulkInsertConnectionStatistics firstConnectionTimes = allBulkInsertConnectionTimes.get(0);
+		System.out.println("jsonBytesSent=" + firstConnectionTimes.getJsonBytesSent());
+		System.out.println("jsonBytesReceived=" + firstConnectionTimes.getJsonBytesReceived());
+		System.out.println("localProcessingMillis=" + firstConnectionTimes.getLocalProcessingTimeMillis());
+		System.out.println("sendDataMillis=" + firstConnectionTimes.getSendDataTimeMillis());
+		System.out.println("remoteProcessingMillis=" + firstConnectionTimes.getRemoteProcessingTimeMillis());
+		System.out.println("receiveDataMillis=" + firstConnectionTimes.getReceivedDataTimeMillis());		
+	}
+	
+	public static void main(String[] args) throws BenchmarkException {
+		ParsedArguments parsedArguments = ParsedArguments.parseArguments(args);
+		Random rng = new Random(2012);
+
+		// Create the document schema.
+		DocumentSchema schema = null;
+		if (parsedArguments.jsonDocumentSchemaFile != null) {
+			schema = DocumentSchema.createSchemaFromJson(parsedArguments.jsonDocumentSchemaFile);
+		} else if (parsedArguments.xmlDocumentSchemaFile != null) {
+			schema = DocumentSchema.createSchemaFromXml(parsedArguments.xmlDocumentSchemaFile);
+		}
+
+		// Create the address of the server.
+		URI databaseUri;
+		try {
+			databaseUri = new URI(parsedArguments.databaseAddress);
+		} catch (URISyntaxException e) {
+			throw new BenchmarkException(e);
+		}
+		InetSocketAddress databaseAddress = new InetSocketAddress(
+				databaseUri.getHost(), databaseUri.getPort());
+		HttpReactor httpReactor = new HttpReactor(parsedArguments.numConnections, databaseAddress);
+		
+		// Perform the bulk inserts.
+		performBulkInserts(parsedArguments, schema, httpReactor, rng);
+		// Perform the CRUD operations.
+		performCrudOperations(parsedArguments, schema, httpReactor, rng);
 	}
 }
