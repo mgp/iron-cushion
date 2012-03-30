@@ -156,7 +156,7 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 	
 	@SuppressWarnings("unchecked")
 	private void performCreateOperation(Channel channel) {
-		document = crudOperations.getNewDocument();
+		document = crudOperations.getNewDocumentWithoutId();
 		String documentId = String.valueOf(crudOperations.getNextCreateId());
 		document.put("_id", documentId);
 		String documentPath = getDocumentPath(documentId);

@@ -11,7 +11,7 @@ import co.adhoclabs.ironcushion.ValueGenerator;
 
 /**
  * Specifies the CRUD operations to be performed by one connection, and maintains the document
- * identifiers to use for create and read operations.
+ * identifiers to use for each operation.
  * 
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
@@ -150,7 +150,7 @@ public class CrudOperations {
 	/**
 	 * @return a new document that conforms to the schema
 	 */
-	public JSONObject getNewDocument() {
+	public JSONObject getNewDocumentWithoutId() {
 		return documentSchema.getNewDocument(valueGenerator);
 	}
 	
@@ -167,7 +167,6 @@ public class CrudOperations {
 	 * @return the next identifier for a CREATE operation
 	 */
 	public int getNextCreateId() {
-		// TODO: remove this, automatically insert ID in getNewDocument?
 		return nextCreateDocumentId;
 	}
 	
