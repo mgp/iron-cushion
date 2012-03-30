@@ -1,8 +1,8 @@
 ![Iron Cushion logo](http://mgp.github.com/assets/images/iron-cushion.png)
 
-Iron Cushion is a benchmark and load testing tool for CouchDB, developed by [adhoclabs](http://adhoclabs.co). It is written in Java and using [Netty](http://netty.io) for high performance.
+Iron Cushion is a benchmark and load testing tool for [CouchDB](http://couchdb.apache.org/), developed by [adhoclabs](http://adhoclabs.co). It proceeds in two steps: First, documents are bulk inserted using CouchDB's [Bulk Document API](http://wiki.apache.org/couchdb/HTTP_Bulk_Document_API). Second, documents are individually created, read, updated, and deleted using CouchDB's [Document API](http://wiki.apache.org/couchdb/HTTP_Document_API). Below we refer to the former as the "bulk insert step," and the latter as the "CRUD operations step." The times for both steps are recorded separately and displayed afterward.
 
-The benchmark proceeds in two steps: First, documents are bulk inserted. Second, documents are individually created, read, updated, and deleted. The times for both steps are recorded separately and displayed afterward.
+It is written in [Java](http://www.java.com) and uses the [Netty library](http://netty.io) for high performance.
 
 ## Command Line Flags
 
@@ -12,14 +12,14 @@ The benchmark proceeds in two steps: First, documents are bulk inserted. Second,
 * `json_document_schema_file`: A JSON file describing the schema of documents created during the benchmark.
 * `xml_document_schema_file`: An XML file describing the schema of documents created during the benchmark.
 
-Either `json_document_schema_file` or `xml_document_schema_file` must be provided. Note that while CouchDB is schemaless, this schema provides a template for generated documents, and allows the user to control their level of complexity. For more details, see "Document Generation" below.
+Either `json_document_schema_file` or `xml_document_schema_file` must be provided. For details on the format of these files, see "Document Generation" below.
 
 ### Bulk Insert Flags
 
 * `num_documents_per_bulk_insert`: The number of documents in each bulk insert operation.
 * `num_bulk_insert_operations`: The number of bulk insert operations performed by each connection.
 
-For example, if `num_connections` is `50`, `num_documents_per_bulk_insert` is `1000`, and `num_bulk_insert_operations` is `20`, then after the bulk insert phase there will be 50 x 1,000 x 20 = 1,000,000 documents in the database.
+For example, if `num_connections` is `50`, `num_documents_per_bulk_insert` is `1000`, and `num_bulk_insert_operations` is `20`, then after the bulk insert step there will be 50 x 1,000 x 20 = 1,000,000 documents in the database.
 
 ### CRUD Flags
 
@@ -31,15 +31,18 @@ For example, if `num_connections` is `50`, `num_documents_per_bulk_insert` is `1
 
 For example, if `create_weight` is `2`, `read_weight` is `3`, `update_weight` is `2`, and `delete_weight` is `1`, then 2/8 of all CRUD operations will be create operations, 3/8 of all CRUD operations will be read operations, 2/8 of all CRUD operations will be update operations, and 1/8 of all CRUD operations will be delete operations. If `num_crud_operations` is `100000`, this equals 25,000 create operations, 37,500 read operations, 25,000 update operations, and 12,500 delete operations per connection.
 
-Note that if `delete_weight` is larger than `create_weight`, documents from the bulk insertion step may be deleted.
+Note that if `delete_weight` is larger than `create_weight`, documents from the bulk insert step may be deleted.
 
 ## Document Generation
 
-TODO
+Note that while CouchDB is schemaless, Iron Cushion requires a schema to serve as a template for generated documents that are inserted during the bulk insert step, or inserted or updated during the CRUD operations step. This allows the user to easily control their level of complexity. A schema can be defined either using JSON or XML, but you will likely find the former easier.
 
 ### JSON
 
 TODO
+
+
+An example can be found in `iron-cushion/iron-cushion/data/example_schema.json`. Its schema is equivalent to the one in `iron-cushion/iron-cushion/data/example_schema.xml`.
 
 ### XML
 
@@ -55,11 +58,11 @@ There are seven principal tags, and the outer-most tag must be `<object>`:
 * The `<boolean />` tag translates to a boolean value in JSON.
 * The `<null />` tag translates to a null value in JSON.
 
-An example can be found in `iron-cushion/iron-cushion/data/example_schema.xml`.
+An example can be found in `iron-cushion/iron-cushion/data/example_schema.xml`. Its schema is equivalent to the one in `iron-cushion/iron-cushion/data/example_schema.json`.
 
 ### Document Updates
 
-To update to a document, XXX chooses a random `<entry>` from the top level `<object>` of the original document, generates a new `<value>` for it, and sends the updated document in a `PUT` request.
+To update to a document during the CRUD operations stage, Iron Cushion regenerates and replaces a randomly chosen value from the document's top level object. The updated document is sent to CouchDB using a `PUT` request.
 
 ### Example
 
