@@ -39,6 +39,7 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 	
 	private int insertOperationsCompleted;
 	private boolean readingChunks;
+	private int numJsonBytesReceived;
 	
 	public BulkInsertHandler(BulkInsertConnectionStatistics connectionStatistics,
 			BulkInsertDocumentGenerator bulkInsertDocumentGenerator, String bulkInsertPath,
@@ -89,6 +90,7 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 		request.setHeader(HttpHeaders.Names.CONTENT_LENGTH, insertBuffer.readableBytes());
 		// Assign the body.
 		request.setContent(insertBuffer);
+		connectionStatistics.sentJsonBytes(insertBuffer.readableBytes());
 		
 		connectionStatistics.startSendData();
 		ChannelFuture channelFuture = channel.write(request);
@@ -112,10 +114,12 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 			responseHandler.setStatusCode(response.getStatus());
 			
 			if (response.isChunked()) {
+				numJsonBytesReceived = 0;
 				readingChunks = true;
 			} else {
 				ChannelBuffer content = response.getContent();
 				if (content.readable()) {
+					connectionStatistics.receivedJsonBytes(content.readableBytes());
 					String body = content.toString(CharsetUtil.UTF_8);
 					responseHandler.appendBody(body);
 					writeNextBulkInsertOrClose(channel);
@@ -124,11 +128,14 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 		} else {
 			HttpChunk chunk = (HttpChunk) e.getMessage();
 			if (chunk.isLast()) {
+				connectionStatistics.receivedJsonBytes(numJsonBytesReceived);
 				readingChunks = false;
 				responseHandler.endBody();
 				writeNextBulkInsertOrClose(channel);
 			} else {
-				String body = chunk.getContent().toString(CharsetUtil.UTF_8);
+				ChannelBuffer content = chunk.getContent();
+				numJsonBytesReceived += content.readableBytes();
+				String body = content.toString(CharsetUtil.UTF_8);
 				responseHandler.appendBody(body);
 			}
 		}

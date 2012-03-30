@@ -146,6 +146,7 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 			request.setHeader(HttpHeaders.Names.CONTENT_LENGTH, contentBuffer.readableBytes());
 			// Assign the body if present.
 			request.setContent(contentBuffer);
+			connectionStatistics.sentJsonBytes(contentBuffer.readableBytes());
 		}
 		
 		connectionStatistics.startSendData();
@@ -237,6 +238,7 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 			throw new BenchmarkException("CRUD response is chunked");
 		}
 		ChannelBuffer content = response.getContent();
+		connectionStatistics.receivedJsonBytes(content.readableBytes());
 		String json = content.toString(CharsetUtil.UTF_8);
 		try {
 			return (JSONObject) new JSONParser().parse(json);
