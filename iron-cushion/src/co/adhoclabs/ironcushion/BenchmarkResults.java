@@ -1,7 +1,9 @@
 package co.adhoclabs.ironcushion;
 
 import java.util.Arrays;
+import java.util.Formatter;
 import java.util.List;
+import java.util.Locale;
 
 import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionStatistics;
 import co.adhoclabs.ironcushion.crud.CrudConnectionStatistics;
@@ -12,21 +14,44 @@ import co.adhoclabs.ironcushion.crud.CrudOperations;
  * 
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
-public class BenchmarkResults {
+public abstract class BenchmarkResults {
+	public final long timeTaken;
+	public final long totalBytesSent;
+	public final long totalBytesReceived;
+
+	private BenchmarkResults(long timeTaken, long totalBytesSent, long totalBytesReceived) {
+		this.timeTaken = timeTaken;
+		this.totalBytesSent = totalBytesSent;
+		this.totalBytesReceived = totalBytesReceived;
+	}
+	
+	private static final double MILLIS_PER_SEC = 1000.0;
+	
+	protected static Formatter getFormatter(StringBuilder sb) {
+		return new Formatter(sb, Locale.getDefault());
+	}
+	
+	protected static String format(long value) {
+		// Inefficient, but this isn't done while the benchmark is running.
+		return new Formatter().format("%,d", value).toString();
+	}
+	
+	protected static String format(double value) {
+		// Inefficient, but this isn't done while the benchmark is running.
+		return new Formatter().format("%,.3f", value).toString();
+	}
+	
 	/**
 	 * Benchmark results for bulk insertions.
 	 */
-	public static final class BulkInsertBenchmarkResults {
-		public final long timeTaken;
-		public final long totalBytesSent;
-		public final long totalBytesReceived;
-		
+	public static final class BulkInsertBenchmarkResults extends BenchmarkResults {
 		public final SampleStatistics localProcessingStatistics;
 		public final SampleStatistics sendDataStatistics;
 		public final SampleStatistics remoteProcessingStatistics;
 		public final SampleStatistics receiveDataStatistics;
 		
-		public final double insertRate;
+		public final double remoteProcessingRate;
+		public final double localInsertRate;
 		
 		private BulkInsertBenchmarkResults(long timeTaken,
 				long totalBytesSent,
@@ -35,28 +60,34 @@ public class BenchmarkResults {
 				SampleStatistics sendDataStatistics,
 				SampleStatistics remoteProcessingStatistics,
 				SampleStatistics receiveDataStatistics,
-				double insertRate) {
-			this.timeTaken = timeTaken;
-			this.totalBytesSent = totalBytesSent;
-			this.totalBytesReceived = totalBytesReceived;
+				double remoteProcessingRate,
+				double localInsertRate) {
+			super(timeTaken, totalBytesSent, totalBytesReceived);
+
 			this.localProcessingStatistics = localProcessingStatistics;
 			this.sendDataStatistics = sendDataStatistics;
 			this.remoteProcessingStatistics = remoteProcessingStatistics;
 			this.receiveDataStatistics = receiveDataStatistics;
-			this.insertRate = insertRate;
+			this.remoteProcessingRate = remoteProcessingRate;
+			this.localInsertRate = localInsertRate;
 		}
 		
 		@Override
 		public String toString() {
+			return toString("");
+		}
+		
+		public String toString(String indent) {
 			StringBuilder sb = new StringBuilder();
-			sb.append("timeTaken=").append(timeTaken).append(" ms\n");
-			sb.append("totalBytesSent=").append(totalBytesSent).append(" bytes\n");
-			sb.append("totalBytesReceived=").append(totalBytesReceived).append(" bytes\n");
-			sb.append("localProcessing={").append(localProcessingStatistics).append("}\n");
-			sb.append("sendData={").append(sendDataStatistics).append("}\n");
-			sb.append("remoteProcessing={").append(remoteProcessingStatistics).append("}\n");
-			sb.append("receiveDataStatistics={").append(receiveDataStatistics).append("}\n");
-			sb.append("insertRate=").append(insertRate).append(" docs/sec");
+			sb.append(indent).append("timeTaken=").append(format(timeTaken / MILLIS_PER_SEC)).append(" secs\n");
+			sb.append(indent).append("totalBytesSent=").append(format(totalBytesSent)).append(" bytes\n");
+			sb.append(indent).append("totalBytesReceived=").append(format(totalBytesReceived)).append(" bytes\n");
+			sb.append(indent).append("localProcessing={").append(localProcessingStatistics).append("}\n");
+			sb.append(indent).append("sendData={").append(sendDataStatistics).append("}\n");
+			sb.append(indent).append("remoteProcessing={").append(remoteProcessingStatistics).append("}\n");
+			sb.append(indent).append("receiveDataStatistics={").append(receiveDataStatistics).append("}\n");
+			sb.append(indent).append("remoteProcessingRate=").append(format(remoteProcessingRate)).append(" docs/sec");
+			sb.append(indent).append("localInsertRate=").append(format(localInsertRate)).append(" docs/sec");
 			return sb.toString();
 		}
 	}
@@ -64,11 +95,7 @@ public class BenchmarkResults {
 	/**
 	 * Benchmark results for CRUD operations.
 	 */
-	public static final class CrudBenchmarkResults {
-		public final long timeTaken;
-		public final long totalBytesSent;
-		public final long totalBytesReceived;
-		
+	public static final class CrudBenchmarkResults extends BenchmarkResults {
 		public final SampleStatistics localProcessingStatistics;
 		public final SampleStatistics sendDataStatistics;
 		public final SampleStatistics remoteCreateProcessingStatistics;
@@ -77,10 +104,10 @@ public class BenchmarkResults {
 		public final SampleStatistics remoteDeleteProcessingStatistics;
 		public final SampleStatistics receiveDataStatistics;
 		
-		public final double createRate;
-		public final double readRate;
-		public final double updateRate;
-		public final double deleteRate;
+		public final double remoteCreateProcessingRate;
+		public final double remoteReadProcessingRate;
+		public final double remoteUpdateProcessingRate;
+		public final double remoteDeleteProcessingRate;
 		
 		public CrudBenchmarkResults(long timeTaken,
 				long totalBytesSent,
@@ -92,13 +119,12 @@ public class BenchmarkResults {
 				SampleStatistics remoteUpdateProcessingStatistics,
 				SampleStatistics remoteDeleteProcessingStatistics,
 				SampleStatistics receiveDataStatistics,
-				double createRate,
-				double readRate,
-				double updateRate,
-				double deleteRate) {
-			this.timeTaken = timeTaken;
-			this.totalBytesSent = totalBytesSent;
-			this.totalBytesReceived = totalBytesReceived;
+				double remoteCreateProcessingRate,
+				double remoteReadProcessingRate,
+				double remoteUpdateProcessingRate,
+				double remoteDeleteProcessingRate) {
+			super(timeTaken, totalBytesSent, totalBytesReceived);
+
 			this.localProcessingStatistics = localProcessingStatistics;
 			this.sendDataStatistics = sendDataStatistics;
 			this.remoteCreateProcessingStatistics = remoteCreateProcessingStatistics;
@@ -106,29 +132,33 @@ public class BenchmarkResults {
 			this.remoteUpdateProcessingStatistics = remoteUpdateProcessingStatistics;
 			this.remoteDeleteProcessingStatistics = remoteDeleteProcessingStatistics;
 			this.receiveDataStatistics = receiveDataStatistics;
-			this.createRate = createRate;
-			this.readRate = readRate;
-			this.updateRate = updateRate;
-			this.deleteRate = deleteRate;
+			this.remoteCreateProcessingRate = remoteCreateProcessingRate;
+			this.remoteReadProcessingRate = remoteReadProcessingRate;
+			this.remoteUpdateProcessingRate = remoteUpdateProcessingRate;
+			this.remoteDeleteProcessingRate = remoteDeleteProcessingRate;
 		}
 		
 		@Override
 		public String toString() {
+			return toString("");
+		}
+		
+		public String toString(String indent) {
 			StringBuilder sb = new StringBuilder();
-			sb.append("timeTaken=").append(timeTaken).append(" ms\n");
-			sb.append("totalBytesSent=").append(totalBytesSent).append(" bytes\n");
-			sb.append("totalBytesReceived=").append(totalBytesReceived).append(" bytes\n");
-			sb.append("localProcessing={").append(localProcessingStatistics).append("}\n");
-			sb.append("sendData={").append(sendDataStatistics).append("}\n");
-			sb.append("remoteCreateProcessing={").append(remoteCreateProcessingStatistics).append("}\n");
-			sb.append("remoteReadProcessing={").append(remoteReadProcessingStatistics).append("}\n");
-			sb.append("remoteUpdateProcessing={").append(remoteUpdateProcessingStatistics).append("}\n");
-			sb.append("remoteDeleteProcessing={").append(remoteDeleteProcessingStatistics).append("}\n");
-			sb.append("receiveDataStatistics={").append(receiveDataStatistics).append("}\n");
-			sb.append("createRate=").append(createRate).append(" docs/sec\n");
-			sb.append("readRate=").append(readRate).append(" docs/sec\n");
-			sb.append("updateRate=").append(updateRate).append(" docs/sec\n");
-			sb.append("deleteRate=").append(deleteRate).append(" docs/sec");
+			sb.append(indent).append("timeTaken=").append(format(timeTaken / MILLIS_PER_SEC)).append(" secs\n");
+			sb.append(indent).append("totalBytesSent=").append(format(totalBytesSent)).append(" bytes\n");
+			sb.append(indent).append("totalBytesReceived=").append(format(totalBytesReceived)).append(" bytes\n");
+			sb.append(indent).append("localProcessing={").append(localProcessingStatistics).append("}\n");
+			sb.append(indent).append("sendData={").append(sendDataStatistics).append("}\n");
+			sb.append(indent).append("remoteCreateProcessing={").append(remoteCreateProcessingStatistics).append("}\n");
+			sb.append(indent).append("remoteReadProcessing={").append(remoteReadProcessingStatistics).append("}\n");
+			sb.append(indent).append("remoteUpdateProcessing={").append(remoteUpdateProcessingStatistics).append("}\n");
+			sb.append(indent).append("remoteDeleteProcessing={").append(remoteDeleteProcessingStatistics).append("}\n");
+			sb.append(indent).append("receiveDataStatistics={").append(receiveDataStatistics).append("}\n");
+			sb.append(indent).append("remoteCreateProcessingRate=").append(format(remoteCreateProcessingRate)).append(" docs/sec\n");
+			sb.append(indent).append("remoteReadProcessingRate=").append(format(remoteReadProcessingRate)).append(" docs/sec\n");
+			sb.append(indent).append("remoteUpdateProcessingRate=").append(format(remoteDeleteProcessingRate)).append(" docs/sec\n");
+			sb.append(indent).append("remoteDeleteProcessingRate=").append(format(remoteDeleteProcessingRate)).append(" docs/sec");
 			return sb.toString();
 		}
 	}
@@ -224,10 +254,15 @@ public class BenchmarkResults {
 		// Calculate the rate of documents inserted per second.
 		long numBulkInsertedDocs = (parsedArguments.numDocumentsPerBulkInsert *
 				parsedArguments.numBulkInsertOperations);
-		double insertRate = 0;
+		double remoteProcessingRate = 0;
+		double localInsertRate = 0;
 		for (BulkInsertConnectionStatistics connectionStatistics : allConnectionStatistics) {
-			insertRate += (numBulkInsertedDocs /
-					(connectionStatistics.getRemoteProcessingTimeMillis() / 1000.0));
+			remoteProcessingRate += (MILLIS_PER_SEC * numBulkInsertedDocs /
+					connectionStatistics.getRemoteProcessingTimeMillis());
+			long nonLocalProcessingTime = connectionStatistics.getSendDataTimeMillis() +
+					connectionStatistics.getRemoteProcessingTimeMillis() +
+					connectionStatistics.getReceivedDataTimeMillis();
+			localInsertRate += (MILLIS_PER_SEC * numBulkInsertedDocs / nonLocalProcessingTime);
 		}
 		
 		return new BulkInsertBenchmarkResults(timeTaken,
@@ -237,7 +272,8 @@ public class BenchmarkResults {
 				sendDataStatistics,
 				remoteProcessingStatistics,
 				receiveDataStatistics,
-				insertRate);
+				remoteProcessingRate,
+				localInsertRate);
 	}
 	
 	/**
@@ -289,25 +325,25 @@ public class BenchmarkResults {
 		double createRate = 0;
 		for (CrudConnectionStatistics connectionStatistics : allConnectionStatistics) {
 			createRate += (operationCounts.numCreateOperations /
-					(connectionStatistics.getRemoteCreateProcessingTimeMillis() / 1000.0));
+					(connectionStatistics.getRemoteCreateProcessingTimeMillis() / MILLIS_PER_SEC));
 		}
 		// Calculate the rate of documents read per second.
 		double readRate = 0;
 		for (CrudConnectionStatistics connectionStatistics : allConnectionStatistics) {
 			readRate += (operationCounts.numReadOperations /
-					(connectionStatistics.getRemoteReadProcessingTimeMillis() / 1000.0));
+					(connectionStatistics.getRemoteReadProcessingTimeMillis() / MILLIS_PER_SEC));
 		}
 		// Calculate the rate of documents updated per second.
 		double updateRate = 0;
 		for (CrudConnectionStatistics connectionStatistics : allConnectionStatistics) {
 			updateRate += (operationCounts.numUpdateOperations /
-					(connectionStatistics.getRemoteUpdateProcessingTimeMillis() / 1000.0));
+					(connectionStatistics.getRemoteUpdateProcessingTimeMillis() / MILLIS_PER_SEC));
 		}
 		// Calculate the rate of documents deleted per second.
 		double deleteRate = 0;
 		for (CrudConnectionStatistics connectionStatistics : allConnectionStatistics) {
 			deleteRate += (operationCounts.numDeleteOperations /
-					(connectionStatistics.getRemoteDeleteProcessingTimeMillis() / 1000.0));
+					(connectionStatistics.getRemoteDeleteProcessingTimeMillis() / MILLIS_PER_SEC));
 		}
 		
 		return new CrudBenchmarkResults(timeTaken,
@@ -384,10 +420,10 @@ public class BenchmarkResults {
 		
 		public String toString() {
 			StringBuilder sb = new StringBuilder();
-			sb.append("min=").append(min).append(" ms, ");
-			sb.append("max=").append(max).append(" ms, ");
-			sb.append("median=").append(median).append(" ms, ");
-			sb.append("stdev=").append(deviation).append(" ms");
+			sb.append("min=").append(format(min / MILLIS_PER_SEC)).append(" secs, ");
+			sb.append("max=").append(format(max / MILLIS_PER_SEC)).append(" secs, ");
+			sb.append("median=").append(format(median / MILLIS_PER_SEC)).append(" secs, ");
+			sb.append("sd=").append(format(deviation / MILLIS_PER_SEC)).append(" secs");
 			return sb.toString();
 		}
 		
