@@ -1,3 +1,5 @@
+![Iron Cushion logo](http://mgp.github.com/assets/images/iron-cushion.png)
+
 Iron Cushion is a benchmark and load testing tool for CouchDB, developed by [adhoclabs](http://adhoclabs.co). It is written in Java and using [Netty](http://netty.io) for high performance.
 
 The benchmark proceeds in two steps: First, documents are bulk inserted. Second, documents are individually created, read, updated, and deleted. The times for both steps are recorded separately and displayed afterward.
