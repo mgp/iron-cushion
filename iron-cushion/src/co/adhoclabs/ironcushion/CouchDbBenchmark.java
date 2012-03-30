@@ -43,8 +43,8 @@ public class CouchDbBenchmark {
 		// Perform the CRUD operations.
 		List<CrudConnectionStatistics> allCrudConnectionStatistics = httpReactor.performCrudOperations(
 				allCrudOperations, crudPath);
-		CrudBenchmarkResults crudBenchmarkResults =
-				BenchmarkResults.getCrudResults(allCrudConnectionStatistics);
+		CrudBenchmarkResults crudBenchmarkResults = BenchmarkResults.getCrudResults(
+				parsedArguments.numConnections, crudOperationCounts, allCrudConnectionStatistics);
 		System.out.println("CRUD BENCHMARK RESULTS:");
 		System.out.println(crudBenchmarkResults);
 		System.out.println();
@@ -74,7 +74,7 @@ public class CouchDbBenchmark {
 		List<BulkInsertConnectionStatistics> allBulkInsertConnectionStatistics = httpReactor.performBulkInserts(
 				allBulkInsertDocumentGenerators, bulkInsertPath);
 		BulkInsertBenchmarkResults bulkInsertBenchmarkResults =
-				BenchmarkResults.getBulkInsertResults(allBulkInsertConnectionStatistics);
+				BenchmarkResults.getBulkInsertResults(parsedArguments, allBulkInsertConnectionStatistics);
 		System.out.println("BULK INSERT BENCHMARK RESULTS:");
 		System.out.println(bulkInsertBenchmarkResults);
 		System.out.println();
