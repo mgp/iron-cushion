@@ -7,6 +7,8 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
 
 /**
+ * Abstract superclass for channel pipelines used in the benchmark.
+ * 
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public abstract class AbstractBenchmarkPipelineFactory implements ChannelPipelineFactory {
