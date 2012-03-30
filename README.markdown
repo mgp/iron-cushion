@@ -1,8 +1,8 @@
 ![Iron Cushion logo](http://mgp.github.com/assets/images/iron-cushion.png)
 
-Iron Cushion is a benchmark and load testing tool for [CouchDB](http://couchdb.apache.org/), developed by [adhoclabs](http://adhoclabs.co). It proceeds in two steps: First, documents are bulk inserted using CouchDB's [Bulk Document API](http://wiki.apache.org/couchdb/HTTP_Bulk_Document_API). Second, documents are individually created, read, updated, and deleted using CouchDB's [Document API](http://wiki.apache.org/couchdb/HTTP_Document_API). Below we refer to the former as the "bulk insert step," and the latter as the "CRUD operations step." The times for both steps are recorded separately and displayed afterward.
+Iron Cushion is a benchmark and load testing tool for [CouchDB](http://couchdb.apache.org/), developed by [adhoclabs](http://adhoclabs.co). It proceeds in two steps: First, documents are bulk inserted using CouchDB's [Bulk Document API](http://wiki.apache.org/couchdb/HTTP_Bulk_Document_API). Second, documents are individually created, read, updated, and deleted using CouchDB's [Document API](http://wiki.apache.org/couchdb/HTTP_Document_API). Below we refer to the former as the "bulk insert step," and the latter as the "CRUD operations step." Statistics for both steps are recorded separately and displayed afterward.
 
-It is written in [Java](http://www.java.com) and uses the [Netty library](http://netty.io) for high performance.
+It is written in [Java](http://www.java.com) for version 5.0 and higher, depends only on the [Netty library](http://netty.io), and is released under the [MIT license](http://www.opensource.org/licenses/mit-license.html).
 
 ## Command Line Flags
 
@@ -29,7 +29,7 @@ For example, if `num_connections` is `50`, `num_documents_per_bulk_insert` is `1
 * `update_weight`: Weight defining the number of update operations relative to other operations.
 * `delete_weight`: Weight defining the number of delete operations relative to other operations.
 
-For example, if `create_weight` is `2`, `read_weight` is `3`, `update_weight` is `2`, and `delete_weight` is `1`, then 2/8 of all CRUD operations will be create operations, 3/8 of all CRUD operations will be read operations, 2/8 of all CRUD operations will be update operations, and 1/8 of all CRUD operations will be delete operations. If `num_crud_operations` is `100000`, this equals 25,000 create operations, 37,500 read operations, 25,000 update operations, and 12,500 delete operations per connection.
+For example, if `create_weight` is `2`, `read_weight` is `3`, `update_weight` is `2`, and `delete_weight` is `1`, then 2/8 of all CRUD operations will be create operations, 3/8 of all CRUD operations will be read operations, 2/8 of all CRUD operations will be update operations, and 1/8 of all CRUD operations will be delete operations. If `num_crud_operations` is `10000`, this equals 2,500 create operations, 3,750 read operations, 2,500 update operations, and 1,250 delete operations per connection.
 
 Note that if `delete_weight` is larger than `create_weight`, documents from the bulk insert step may be deleted.
 
@@ -37,26 +37,41 @@ Note that if `delete_weight` is larger than `create_weight`, documents from the 
 
 Note that while CouchDB is schemaless, Iron Cushion requires a schema to serve as a template for generated documents that are inserted during the bulk insert step, or inserted or updated during the CRUD operations step. This allows the user to easily control their level of complexity. A schema can be defined either using JSON or XML, but you will likely find the former easier.
 
+Subject to the quality of the pseudo-random number generator, generated values adhere to the following rules:
+
+* Boolean values have the same likelihood of being `true` or `false`.
+* Integer values follow a uniform distribution.
+* Floating point values follow a uniform distribution between `0.0` and `1.0`.
+* Strings are between 1 and 5 words in length, where adjacent words are separated by a space. Words are chosen from a dictionary of 32,768 words. Each word is between 3 and 15 characters in length and follows the alphabet `[A-Za-z0-9?!]`. The chosen number of words in a string, the length of each word, and each character in each word all follow uniform distributions.
+
 ### JSON
 
-TODO
+The `json_document_schema_file` command line flag specifies a file containing JSON that defines a schema for documents in the database.
 
+A new document is generated from the schema by the following rules:
+
+* Any boolean value read is replaced by a randomly generated boolean value.
+* Any integer value read is replaced by a randomly generated integer value.
+* Any floating point value read is replaced by a randomly generated floating point value.
+* Any string value read is replaced by a randomly generated string.
+
+All other properties of the JSON, such as array lengths, value names in objects, `null` values, and nested types are preserved. The advantage of using a JSON schema is that **any document stored in CouchDB is a valid schema for Iron Cushion**. Iron Cushion will automatically remove the special `_id` and `_rev` values from the JSON schema provided.
 
 An example can be found in `iron-cushion/iron-cushion/data/example_schema.json`. Its schema is equivalent to the one in `iron-cushion/iron-cushion/data/example_schema.xml`.
 
 ### XML
 
-The `xml_document_schema_file` command line flag specifies an XML file that defines a schema for all documents inserted into the database. In the future, the XML file may allow adding attributes to these tags to specify properties like minimum and maximum values for generated integers, etc.
+The `xml_document_schema_file` command line flag specifies an file containing XML that defines a schema for documents in the database. In the future, the XML file may allow adding attributes to these tags to specify properties like minimum and maximum values for generated integers, etc.
 
 There are seven principal tags, and the outer-most tag must be `<object>`:
 
 * The `<object>` tag translates to a JSON object containing name-value pairs. The `<object>` tag encloses 0 or more `<entry>` tags to define name-value pairs. Each `<entry>` tag contains a `<name>` and `<value>` tag. The name of the value, which must be a string, is enclosed by the `<name>` tag. The type of the value is enclosed by the `<value>` tag.
-* The `<array>` tag translates to an array in JSON. The `<array>` tag encloses 0 or more `<element>` tags to define its elements. The type of each element is enclosed by its `<element>` tag.
-* The `<string />` tag translates to a string in JSON. The string is between 1 and 5 words in length, where each word is chosen from a dictionary of 32,768 words, each generated from the alphabet `[A-Za-z0-9?!]`.
-* The `<integer />` tag translates to an integer value in JSON.
-* The `<float />` tag translates to a floating point value in JSON.
-* The `<boolean />` tag translates to a boolean value in JSON.
-* The `<null />` tag translates to a null value in JSON.
+* The `<array>` tag translates to an JSON array. The `<array>` tag encloses 0 or more `<element>` tags to define its elements. The type of each element is enclosed by its `<element>` tag.
+* The `<boolean />` tag translates to a generated boolean value.
+* The `<integer />` tag translates to an generated integer value.
+* The `<float />` tag translates to a generated floating point.
+* The `<string />` tag translates to a generated string. 
+* The `<null />` tag translates to a `null` value.
 
 An example can be found in `iron-cushion/iron-cushion/data/example_schema.xml`. Its schema is equivalent to the one in `iron-cushion/iron-cushion/data/example_schema.json`.
 
