@@ -1,6 +1,4 @@
-# CouchDB Benchmark
-
-CouchDB Benchmark is a benchmark and load testing tool for CouchDB, written in Java and using [Netty](http://netty.io) for high performance.
+Iron Cushion is a benchmark and load testing tool for CouchDB, developed by [adhoclabs](http://adhoclabs.co). It is written in Java and using [Netty](http://netty.io) for high performance.
 
 The benchmark proceeds in two steps: First, documents are bulk inserted. Second, documents are individually created, read, updated, and deleted. The times for both steps are recorded separately and displayed afterward.
 
@@ -45,35 +43,17 @@ TODO
 
 The `xml_document_schema_file` command line flag specifies an XML file that defines a schema for all documents inserted into the database. In the future, the XML file may allow adding attributes to these tags to specify properties like minimum and maximum values for generated integers, etc.
 
-There are six principal tags, each of which are described below: `<object>`, `<array>`, `<string />`, `<integer />`, `<float />`, and `<boolean />`. The outer-most tag must be `<object>`.
+There are seven principal tags, and the outer-most tag must be `<object>`:
 
-**Object**
+* The `<object>` tag translates to a JSON object containing name-value pairs. The `<object>` tag encloses 0 or more `<entry>` tags to define name-value pairs. Each `<entry>` tag contains a `<name>` and `<value>` tag. The name of the value, which must be a string, is enclosed by the `<name>` tag. The type of the value is enclosed by the `<value>` tag.
+* The `<array>` tag translates to an array in JSON. The `<array>` tag encloses 0 or more `<element>` tags to define its elements. The type of each element is enclosed by its `<element>` tag.
+* The `<string />` tag translates to a string in JSON. The string is between 1 and 5 words in length, where each word is chosen from a dictionary of 32,768 words, each generated from the alphabet `[A-Za-z0-9?!]`.
+* The `<integer />` tag translates to an integer value in JSON.
+* The `<float />` tag translates to a floating point value in JSON.
+* The `<boolean />` tag translates to a boolean value in JSON.
+* The `<null />` tag translates to a null value in JSON.
 
-The `<object>` tag translates to a JSON object containing name-value pairs. The `<object>` tag encloses 0 or more `<entry>` tags to define name-value pairs. The name of the value, which must be a string, is enclosed by the `<name>` tag. The type of the value is enclosed by the `<value>` tag.
-
-**Array**
-
-The `<array>` tag translates to an array in JSON. The `<array>` tag encloses 0 or more `<element>` tags to define its elements. The type of each element is enclosed by its `<element>` tag.
-
-**String**
-
-The `<string />` tag translates to a string in JSON. The string is between 1 and 5 words in length, where each word is chosen from a dictionary of 32,768 words, each generated from the alphabet `[A-Za-z0-9?!]`.
-
-**Integer**
-
-The `<integer />` tag translates to an integer value in JSON.
-
-**Float**
-
-The `<float />` tag translates to a floating point value in JSON.
-
-**Boolean**
-
-The `<boolean />` tag translates to a boolean value in JSON.
-
-**Null**
-
-The `<null />` tag translates to a null value in JSON.
+An example can be found in `iron-cushion/iron-cushion/data/example_schema.xml`.
 
 ### Document Updates
 
@@ -116,17 +96,17 @@ Can generate the following document:
       0.30425853
     ], 
     {}, 
-    true,
+    false,
     null
   ], 
   "boolean1": true, 
+  "integer1": 1929847379, 
   "obj1": {
     "array2": [], 
     "obj2": {
       "boolean2": false
     }
   }, 
-  "integer1": 1929847379, 
   "string1": "928lR8eM7DcBSgR 598A8VxzeFE2 uKTF FqiMEmxdLJmDni"
 }
 
