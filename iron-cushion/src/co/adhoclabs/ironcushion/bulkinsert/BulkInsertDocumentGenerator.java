@@ -43,9 +43,9 @@ public abstract class BulkInsertDocumentGenerator {
 	@SuppressWarnings("unchecked")
 	protected ChannelBuffer getNewBuffer(int numDocumentsPerInsert,
 			DocumentSchema schema, ValueGenerator valueGenerator,
-			int nextDocumentId) {
+			int firstDocumentId) {
 		JSONArray documents = new JSONArray(numDocumentsPerInsert);
-		for (int j = 0; j < numDocumentsPerInsert; ++j) {
+		for (int j = 0, nextDocumentId = firstDocumentId; j < numDocumentsPerInsert; ++j, ++nextDocumentId) {
 			JSONObject document = schema.getNewDocument(valueGenerator);
 			document.put("_id", String.valueOf(nextDocumentId));
 			documents.add(document);
@@ -67,13 +67,15 @@ public abstract class BulkInsertDocumentGenerator {
 				int numDocumentsPerInsert, int numInsertOperations) {
 			int numInsertedDocuments = numDocumentsPerInsert
 					* numInsertOperations;
-			int nextDocumentId = connectionNum * numInsertedDocuments;
+			int firstDocumentId = connectionNum * numInsertedDocuments;
 
 			insertBuffers = new ArrayList<ChannelBuffer>(numInsertOperations);
-			for (int i = 0; i < numInsertOperations; ++i, ++nextDocumentId) {
+			for (int i = 0; i < numInsertOperations; ++i) {
 				insertBuffers.add(getNewBuffer(numDocumentsPerInsert, schema,
-						valueGenerator, nextDocumentId));
+						valueGenerator, firstDocumentId));
+				firstDocumentId += numDocumentsPerInsert;
 			}
+			
 		}
 
 		public ChannelBuffer getBuffer(int insertOperation) {
@@ -110,7 +112,7 @@ public abstract class BulkInsertDocumentGenerator {
 		private final ValueGenerator valueGenerator;
 		private final int numDocumentsPerInsert;
 		private final int numInsertOperations;
-		private int nextDocumentId;
+		private int firstDocumentId;
 
 		private OnDemandBulkInsertDocumentGenerator(DocumentSchema schema,
 				ValueGenerator valueGenerator, int connectionNum,
@@ -122,12 +124,12 @@ public abstract class BulkInsertDocumentGenerator {
 
 			int numInsertedDocuments = numDocumentsPerInsert
 					* numInsertOperations;
-			nextDocumentId = connectionNum * numInsertedDocuments;
+			firstDocumentId = connectionNum * numInsertedDocuments;
 		}
 
 		public ChannelBuffer getBuffer(int insertOperation) {
 			return getNewBuffer(numDocumentsPerInsert, schema, valueGenerator,
-					nextDocumentId);
+					firstDocumentId + (insertOperation * numDocumentsPerInsert));
 		}
 
 		public int size() {

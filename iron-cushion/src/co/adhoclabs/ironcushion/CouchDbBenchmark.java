@@ -68,7 +68,7 @@ public class CouchDbBenchmark {
 		List<BulkInsertDocumentGenerator> allBulkInsertDocumentGenerators = new ArrayList<BulkInsertDocumentGenerator>(
 				parsedArguments.numConnections);
 		for (int i = 0; i < parsedArguments.numConnections; ++i) {
-			BulkInsertDocumentGenerator bulkInsertDocumentGenerator = BulkInsertDocumentGenerator.preComputed(
+			BulkInsertDocumentGenerator bulkInsertDocumentGenerator = BulkInsertDocumentGenerator.onDemand(
 					schema, new ValueGenerator(words, rng), i,
 					parsedArguments.numDocumentsPerBulkInsert,
 					parsedArguments.numBulkInsertOperations);
@@ -118,6 +118,6 @@ public class CouchDbBenchmark {
 		// Perform the bulk inserts.
 		performBulkInserts(parsedArguments, schema, httpReactor, words, rng);
 		// Perform the CRUD operations.
-		performCrudOperations(parsedArguments, schema, httpReactor, words, rng);
+		// performCrudOperations(parsedArguments, schema, httpReactor, words, rng);
 	}
 }
