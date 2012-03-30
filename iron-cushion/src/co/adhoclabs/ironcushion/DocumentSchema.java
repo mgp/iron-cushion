@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -347,9 +348,9 @@ public class DocumentSchema {
 				return parseArrayValue(jsonArray);
 			} else if (object instanceof String) {
 				return StringValue.INSTANCE;
-			} else if (object instanceof Integer) {
+			} else if (object instanceof Long) {
 				return IntegerValue.INSTANCE;
-			} else if (object instanceof Float) {
+			} else if (object instanceof Double) {
 				return FloatValue.INSTANCE;
 			} else if (object instanceof Boolean) {
 				return BooleanValue.INSTANCE;
@@ -424,6 +425,7 @@ public class DocumentSchema {
 			BufferedReader bufferedReader = new BufferedReader(new FileReader(schemaFile));
 			JSONParser jsonParser = new JSONParser();
 			JSONObject json = (JSONObject) jsonParser.parse(bufferedReader);
+			bufferedReader.close();
 			ObjectValue root = JsonParser.parseJson(json);
 			return new DocumentSchema(root);
 		} catch (IOException e) {
