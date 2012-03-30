@@ -36,7 +36,7 @@ public class CouchDbBenchmark {
 		List<BulkInsertDocuments> allBulkInsertDocuments = new ArrayList<BulkInsertDocuments>(
 				parsedArguments.numConnections);
 		for (int i = 0; i < parsedArguments.numConnections; ++i) {
-			BulkInsertDocuments bulkInsertDocuments = new BulkInsertDocuments(
+			BulkInsertDocuments bulkInsertDocuments = BulkInsertDocuments.preComputed(
 					schema, valueGenerator, i,
 					parsedArguments.numDocumentsPerBulkInsert,
 					parsedArguments.numBulkInsertOperations);
