@@ -94,4 +94,9 @@ public abstract class AbstractConnectionStatistics {
 	public long getReceivedDataTimeMillis() {
 		return receiveDataTimer.getTotalTimeMillis();
 	}
+	
+	/**
+	 * @return the total number of milliseconds spent
+	 */
+	public abstract long getTotalTimeMillis();
 }

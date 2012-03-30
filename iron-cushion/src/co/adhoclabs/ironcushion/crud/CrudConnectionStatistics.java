@@ -183,4 +183,15 @@ public class CrudConnectionStatistics extends AbstractConnectionStatistics {
 		receiveDataTimer.start();
 		runningTimer = RunningConnectionTimer.RECEIVE_DATA;
 	}
+	
+	@Override
+	public long getTotalTimeMillis() {
+		return (localProcessingTimer.getTotalTimeMillis() +
+				sendDataTimer.getTotalTimeMillis() +
+				remoteCreateProcessingTimer.getTotalTimeMillis() +
+				remoteReadProcessingTimer.getTotalTimeMillis() +
+				remoteUpdateProcessingTimer.getTotalTimeMillis() +
+				remoteDeleteProcessingTimer.getTotalTimeMillis() +
+				receiveDataTimer.getTotalTimeMillis());
+	}
 }

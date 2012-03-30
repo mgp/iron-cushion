@@ -108,4 +108,12 @@ public class BulkInsertConnectionStatistics extends AbstractConnectionStatistics
 		receiveDataTimer.start();
 		runningTimer = RunningConnectionTimer.RECEIVE_DATA;
 	}
+	
+	@Override
+	public long getTotalTimeMillis() {
+		return (localProcessingTimer.getTotalTimeMillis() +
+				sendDataTimer.getTotalTimeMillis() +
+				remoteProcessingTimer.getTotalTimeMillis() +
+				receiveDataTimer.getTotalTimeMillis());
+	}
 }
