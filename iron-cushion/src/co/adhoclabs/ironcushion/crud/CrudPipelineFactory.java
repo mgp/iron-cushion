@@ -9,7 +9,6 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.handler.codec.http.HttpClientCodec;
 
 import co.adhoclabs.ironcushion.AbstractBenchmarkPipelineFactory;
-import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
 
 /**
  * The {@link ChannelPipelineFactory} for connections that perform CRUD operations.
@@ -24,9 +23,8 @@ public class CrudPipelineFactory extends AbstractBenchmarkPipelineFactory {
 	private int connectionNum;
 	
 	public CrudPipelineFactory(int numConnections,
-			List<CrudOperations> allCrudOperations, String crudPath,
-			ResponseHandler responseHandler) {
-		super(numConnections, responseHandler);
+			List<CrudOperations> allCrudOperations, String crudPath) {
+		super(numConnections);
 		
 		this.allConnectionStatistics = new ArrayList<CrudConnectionStatistics>(numConnections);
 		for (int i = 0; i < numConnections; ++i) {
@@ -53,7 +51,7 @@ public class CrudPipelineFactory extends AbstractBenchmarkPipelineFactory {
 		return Channels.pipeline(
 				new HttpClientCodec(),
 				// new HttpContentDecompressor(),
-				new CrudHandler(connectionStatistics, crudOperations, crudPath, responseHandler, countDownLatch)
+				new CrudHandler(connectionStatistics, crudOperations, crudPath, countDownLatch)
 				);
 	}
 }

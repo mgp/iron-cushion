@@ -9,7 +9,6 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.handler.codec.http.HttpClientCodec;
 
 import co.adhoclabs.ironcushion.AbstractBenchmarkPipelineFactory;
-import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
 
 /**
  * The {@link ChannelPipelineFactory} for connections that perform bulk inserts.
@@ -24,9 +23,8 @@ public class BulkInsertPipelineFactory extends AbstractBenchmarkPipelineFactory 
 	private int connectionNum;
 	
 	public BulkInsertPipelineFactory(int numConnections,
-			List<BulkInsertDocumentGenerator> allBulkInsertDocumentGenerators, String bulkInsertPath,
-			ResponseHandler responseHandler) {
-		super(numConnections, responseHandler);
+			List<BulkInsertDocumentGenerator> allBulkInsertDocumentGenerators, String bulkInsertPath) {
+		super(numConnections);
 		
 		this.allConnectionStatistics = new ArrayList<BulkInsertConnectionStatistics>();
 		for (int i = 0; i < numConnections; ++i) {
@@ -53,7 +51,7 @@ public class BulkInsertPipelineFactory extends AbstractBenchmarkPipelineFactory 
 		return Channels.pipeline(
 				new HttpClientCodec(),
 				// new HttpContentDecompressor(),
-				new BulkInsertHandler(connectionStatistics, documentGenerator, bulkInsertPath, responseHandler, countDownLatch)
+				new BulkInsertHandler(connectionStatistics, documentGenerator, bulkInsertPath, countDownLatch)
 				);
 	}
 }

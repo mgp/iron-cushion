@@ -25,7 +25,6 @@ import org.json.simple.parser.ParseException;
 
 import co.adhoclabs.ironcushion.AbstractBenchmarkHandler;
 import co.adhoclabs.ironcushion.BenchmarkException;
-import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
 import co.adhoclabs.ironcushion.crud.CrudConnectionStatistics.RunningConnectionTimer;
 
 /**
@@ -48,9 +47,8 @@ public class CrudHandler extends AbstractBenchmarkHandler {
 	private int crudOperationsCompleted;
 	
 	public CrudHandler(CrudConnectionStatistics connectionStatistics,
-			CrudOperations crudOperations, String crudPath, ResponseHandler responseHandler,
-			CountDownLatch countDownLatch) {
-		super(responseHandler, countDownLatch);
+			CrudOperations crudOperations, String crudPath, CountDownLatch countDownLatch) {
+		super(countDownLatch);
 		
 		this.connectionStatistics = connectionStatistics;
 		this.crudOperations = crudOperations;

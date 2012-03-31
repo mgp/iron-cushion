@@ -18,10 +18,8 @@ import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpVersion;
-import org.jboss.netty.util.CharsetUtil;
 
 import co.adhoclabs.ironcushion.AbstractBenchmarkHandler;
-import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
 import co.adhoclabs.ironcushion.bulkinsert.BulkInsertConnectionStatistics.RunningConnectionTimer;
 
 /**
@@ -43,8 +41,8 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 	
 	public BulkInsertHandler(BulkInsertConnectionStatistics connectionStatistics,
 			BulkInsertDocumentGenerator bulkInsertDocumentGenerator, String bulkInsertPath,
-			ResponseHandler responseHandler, CountDownLatch countDownLatch) {
-		super(responseHandler, countDownLatch);
+			CountDownLatch countDownLatch) {
+		super(countDownLatch);
 		
 		this.connectionStatistics = connectionStatistics;
 		this.bulkInsertDocumentGenerator = bulkInsertDocumentGenerator;
@@ -111,7 +109,6 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 		Channel channel = e.getChannel();
 		if (!readingChunks) {
 			HttpResponse response = (HttpResponse) e.getMessage();
-			responseHandler.setStatusCode(response.getStatus());
 			
 			if (response.isChunked()) {
 				numJsonBytesReceived = 0;
@@ -120,8 +117,6 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 				ChannelBuffer content = response.getContent();
 				if (content.readable()) {
 					connectionStatistics.receivedJsonBytes(content.readableBytes());
-					String body = content.toString(CharsetUtil.UTF_8);
-					responseHandler.appendBody(body);
 					writeNextBulkInsertOrClose(channel);
 				}
 			}
@@ -130,13 +125,10 @@ public class BulkInsertHandler extends AbstractBenchmarkHandler {
 			if (chunk.isLast()) {
 				connectionStatistics.receivedJsonBytes(numJsonBytesReceived);
 				readingChunks = false;
-				responseHandler.endBody();
 				writeNextBulkInsertOrClose(channel);
 			} else {
 				ChannelBuffer content = chunk.getContent();
 				numJsonBytesReceived += content.readableBytes();
-				String body = content.toString(CharsetUtil.UTF_8);
-				responseHandler.appendBody(body);
 			}
 		}
 	}

@@ -9,20 +9,15 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 
-import co.adhoclabs.ironcushion.HttpReactor.ResponseHandler;
-
 /**
  * Abstract superclass for handlers used in the benchmark.
  * 
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public abstract class AbstractBenchmarkHandler extends SimpleChannelUpstreamHandler {
-	protected final ResponseHandler responseHandler;
 	protected final CountDownLatch countDownLatch;
 
-	protected AbstractBenchmarkHandler(
-			ResponseHandler responseHandler, CountDownLatch countDownLatch) {
-		this.responseHandler = responseHandler;
+	protected AbstractBenchmarkHandler(CountDownLatch countDownLatch) {
 		this.countDownLatch = countDownLatch;
 	}
 	
