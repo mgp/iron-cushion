@@ -16,13 +16,13 @@ import co.adhoclabs.ironcushion.crud.CrudOperations;
  */
 public abstract class BenchmarkResults {
 	public final long timeTaken;
-	public final long totalBytesSent;
-	public final long totalBytesReceived;
+	public final long totalJsonBytesSent;
+	public final long totalJsonBytesReceived;
 
-	private BenchmarkResults(long timeTaken, long totalBytesSent, long totalBytesReceived) {
+	private BenchmarkResults(long timeTaken, long totalJsonBytesSent, long totalJsonBytesReceived) {
 		this.timeTaken = timeTaken;
-		this.totalBytesSent = totalBytesSent;
-		this.totalBytesReceived = totalBytesReceived;
+		this.totalJsonBytesSent = totalJsonBytesSent;
+		this.totalJsonBytesReceived = totalJsonBytesReceived;
 	}
 	
 	private static final double MILLIS_PER_SEC = 1000.0;
@@ -54,15 +54,15 @@ public abstract class BenchmarkResults {
 		public final double localInsertRate;
 		
 		private BulkInsertBenchmarkResults(long timeTaken,
-				long totalBytesSent,
-				long totalBytesReceived,
+				long totalJsonBytesSent,
+				long totalJsonBytesReceived,
 				SampleStatistics localProcessingStatistics,
 				SampleStatistics sendDataStatistics,
 				SampleStatistics remoteProcessingStatistics,
 				SampleStatistics receiveDataStatistics,
 				double remoteProcessingRate,
 				double localInsertRate) {
-			super(timeTaken, totalBytesSent, totalBytesReceived);
+			super(timeTaken, totalJsonBytesSent, totalJsonBytesReceived);
 
 			this.localProcessingStatistics = localProcessingStatistics;
 			this.sendDataStatistics = sendDataStatistics;
@@ -80,8 +80,8 @@ public abstract class BenchmarkResults {
 		public String toString(String indent) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(indent).append("timeTaken=").append(format(timeTaken / MILLIS_PER_SEC)).append(" secs\n");
-			sb.append(indent).append("totalBytesSent=").append(format(totalBytesSent)).append(" bytes\n");
-			sb.append(indent).append("totalBytesReceived=").append(format(totalBytesReceived)).append(" bytes\n");
+			sb.append(indent).append("totalJsonBytesSent=").append(format(totalJsonBytesSent)).append(" bytes\n");
+			sb.append(indent).append("totalJsonBytesReceived=").append(format(totalJsonBytesReceived)).append(" bytes\n");
 			sb.append(indent).append("localProcessing={").append(localProcessingStatistics).append("}\n");
 			sb.append(indent).append("sendData={").append(sendDataStatistics).append("}\n");
 			sb.append(indent).append("remoteProcessing={").append(remoteProcessingStatistics).append("}\n");
@@ -109,8 +109,8 @@ public abstract class BenchmarkResults {
 		public final double remoteDeleteProcessingRate;
 		
 		public CrudBenchmarkResults(long timeTaken,
-				long totalBytesSent,
-				long totalBytesReceived,
+				long totalJsonBytesSent,
+				long totalJsonBytesReceived,
 				SampleStatistics localProcessingStatistics,
 				SampleStatistics sendDataStatistics,
 				SampleStatistics remoteCreateProcessingStatistics,
@@ -121,7 +121,7 @@ public abstract class BenchmarkResults {
 				double remoteReadProcessingRate,
 				double remoteUpdateProcessingRate,
 				double remoteDeleteProcessingRate) {
-			super(timeTaken, totalBytesSent, totalBytesReceived);
+			super(timeTaken, totalJsonBytesSent, totalJsonBytesReceived);
 
 			this.localProcessingStatistics = localProcessingStatistics;
 			this.sendDataStatistics = sendDataStatistics;
@@ -143,8 +143,8 @@ public abstract class BenchmarkResults {
 		public String toString(String indent) {
 			StringBuilder sb = new StringBuilder();
 			sb.append(indent).append("timeTaken=").append(format(timeTaken / MILLIS_PER_SEC)).append(" secs\n");
-			sb.append(indent).append("totalBytesSent=").append(format(totalBytesSent)).append(" bytes\n");
-			sb.append(indent).append("totalBytesReceived=").append(format(totalBytesReceived)).append(" bytes\n");
+			sb.append(indent).append("totalJsonBytesSent=").append(format(totalJsonBytesSent)).append(" bytes\n");
+			sb.append(indent).append("totalJsonBytesReceived=").append(format(totalJsonBytesReceived)).append(" bytes\n");
 			sb.append(indent).append("localProcessing={").append(localProcessingStatistics).append("}\n");
 			sb.append(indent).append("sendData={").append(sendDataStatistics).append("}\n");
 			sb.append(indent).append("remoteCreateProcessing={").append(remoteCreateProcessingStatistics).append("}\n");
@@ -172,22 +172,22 @@ public abstract class BenchmarkResults {
 		return maxTimeTaken;
 	}
 	
-	private static long getTotalBytesSent(
+	private static long getTotalJsonBytesSent(
 			List<? extends AbstractConnectionStatistics> allConnectionStatistics) {
-		long totalBytesSent = 0;
+		long totalJsonBytesSent = 0;
 		for (AbstractConnectionStatistics connectionStatistics : allConnectionStatistics) {
-			totalBytesSent += connectionStatistics.getJsonBytesSent();
+			totalJsonBytesSent += connectionStatistics.getJsonBytesSent();
 		}
-		return totalBytesSent;
+		return totalJsonBytesSent;
 	}
 	
-	private static long getTotalBytesReceived(
+	private static long getTotalJsonBytesReceived(
 			List<? extends AbstractConnectionStatistics> allConnectionStatistics) {
-		long totalBytesReceived = 0;
+		long totalJsonBytesReceived = 0;
 		for (AbstractConnectionStatistics connectionStatistics : allConnectionStatistics) {
-			totalBytesReceived += connectionStatistics.getJsonBytesReceived();
+			totalJsonBytesReceived += connectionStatistics.getJsonBytesReceived();
 		}
-		return totalBytesReceived;
+		return totalJsonBytesReceived;
 	}
 	
 	private static SampleStatistics getLocalProcessingStatistics(
@@ -220,8 +220,8 @@ public abstract class BenchmarkResults {
 			ParsedArguments parsedArguments,
 			List<BulkInsertConnectionStatistics> allConnectionStatistics) {
 		long timeTaken = getTimeTaken(allConnectionStatistics);
-		long totalBytesSent = getTotalBytesSent(allConnectionStatistics);
-		long totalBytesReceived = getTotalBytesReceived(allConnectionStatistics);
+		long totalJsonBytesSent = getTotalJsonBytesSent(allConnectionStatistics);
+		long totalJsonBytesReceived = getTotalJsonBytesReceived(allConnectionStatistics);
 		
 		long[] values = new long[allConnectionStatistics.size()];
 		// Get statistics for local processing.
@@ -256,8 +256,8 @@ public abstract class BenchmarkResults {
 		}
 		
 		return new BulkInsertBenchmarkResults(timeTaken,
-				totalBytesSent,
-				totalBytesReceived,
+				totalJsonBytesSent,
+				totalJsonBytesReceived,
 				localProcessingStatistics,
 				sendDataStatistics,
 				remoteProcessingStatistics,
@@ -276,8 +276,8 @@ public abstract class BenchmarkResults {
 			int numConnections, CrudOperations.CrudOperationCounts operationCounts,
 			List<CrudConnectionStatistics> allConnectionStatistics) {
 		long timeTaken = getTimeTaken(allConnectionStatistics);
-		long totalBytesSent = getTotalBytesSent(allConnectionStatistics);
-		long totalBytesReceived = getTotalBytesReceived(allConnectionStatistics);
+		long totalJsonBytesSent = getTotalJsonBytesSent(allConnectionStatistics);
+		long totalJsonBytesReceived = getTotalJsonBytesReceived(allConnectionStatistics);
 		
 		long[] values = new long[allConnectionStatistics.size()];
 		// Get statistics for local processing.
@@ -335,8 +335,8 @@ public abstract class BenchmarkResults {
 		}
 		
 		return new CrudBenchmarkResults(timeTaken,
-				totalBytesSent,
-				totalBytesReceived,
+				totalJsonBytesSent,
+				totalJsonBytesReceived,
 				localProcessingStatistics,
 				sendDataStatistics,
 				remoteCreateProcessingStatistics,

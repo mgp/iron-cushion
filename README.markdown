@@ -155,20 +155,20 @@ Running the benchmark program with these flags on my 1.83 GHz Intel Core Duo Mac
 
 ```
 BULK INSERT BENCHMARK RESULTS:
-  timeTaken=276.385 secs
-  totalBytesSent=374,240,177 bytes
-  totalBytesReceived=138,823,936 bytes
-  localProcessing={min=1.013 secs, max=2.598 secs, median=1.705 secs, sd=0.307 secs}
-  sendData={min=9.694 secs, max=29.616 secs, median=17.892 secs, sd=4.522 secs}
-  remoteProcessing={min=178.823 secs, max=239.883 secs, median=224.736 secs, sd=11.307 secs}
-  receiveData={min=6.484 secs, max=26.548 secs, median=15.457 secs, sd=4.913 secs}
-  remoteProcessingRate=9,013.480 docs/sec
-  localInsertRate=7,807.968 docs/sec
+  timeTaken=249.182 secs
+  totalJsonBytesSent=374,240,177 bytes
+  totalJsonBytesReceived=138,823,936 bytes
+  localProcessing={min=1.363 secs, max=2.906 secs, median=1.800 secs, sd=0.323 secs}
+  sendData={min=9.066 secs, max=29.611 secs, median=19.002 secs, sd=4.287 secs}
+  remoteProcessing={min=171.507 secs, max=214.598 secs, median=203.845 secs, sd=10.918 secs}
+  receiveData={min=4.933 secs, max=23.565 secs, median=11.875 secs, sd=3.856 secs}
+  remoteProcessingRate=10,003.030 docs/sec
+  localInsertRate=8,676.693 docs/sec
 ```
 
 * `timeTaken` is how long it took for the slowest connection to complete all bulk inserts.
-* `totalBytesSent` is the number of bytes of JSON sent to CouchDB, and therefore does not include bytes from HTTP headers.
-* `totalBytesReceived` is the number of bytes of JSON received from CouchDB, and therefore does not include bytes from HTTP headers.
+* `totalJsonBytesSent` is the number of bytes of JSON sent to CouchDB, and therefore does not include bytes from HTTP headers.
+* `totalJsonBytesReceived` is the number of bytes of JSON received from CouchDB, and therefore does not include bytes from HTTP headers.
 * `localProcessing` is how much time each connection spent preparing and encoding sent JSON and decoding received JSON.
 * `sendData` is how much time each connection spent sending data to CouchDB.
 * `remoteProcessing` is how much time each connection spent waiting for the beginning of responses from CouchDB after sending bulk insert messages.
@@ -178,25 +178,24 @@ BULK INSERT BENCHMARK RESULTS:
 
 ```
 CRUD BENCHMARK RESULTS:
-  timeTaken=92.240 secs
-  totalBytesSent=10,644,292 bytes
-  totalBytesReceived=10,705,118 bytes
-  localProcessing={min=0.000 secs, max=0.055 secs, median=0.016 secs, sd=0.011 secs}
-  sendData={min=0.000 secs, max=0.023 secs, median=0.001 secs, sd=0.003 secs}
-  remoteCreateProcessing={min=21.603 secs, max=24.592 secs, median=22.840 secs, sd=0.504 secs}
-  remoteReadProcessing={min=2.101 secs, max=2.812 secs, median=2.516 secs, sd=0.146 secs}
-  remoteUpdateProcessing={min=31.514 secs, max=34.182 secs, median=32.920 secs, sd=0.548 secs}
-  remoteDeleteProcessing={min=32.071 secs, max=35.141 secs, median=33.548 secs, sd=0.546 secs}
-  receiveDataStatistics={min=0.000 secs, max=0.000 secs, median=0.000 secs, sd=0.000 secs}
-  remoteCreateProcessingRate=875.059 docs/sec
-  remoteReadProcessingRate=7,961.536 docs/sec
-  remoteUpdateProcessingRate=894.642 docs/sec
-  remoteDeleteProcessingRate=894.642 docs/sec
+  timeTaken=84.654 secs
+  totalJsonBytesSent=10,646,425 bytes
+  totalJsonBytesReceived=10,704,882 bytes
+  localProcessing={min=0.002 secs, max=0.062 secs, median=0.016 secs, sd=0.010 secs}
+  sendData={min=0.000 secs, max=0.035 secs, median=0.002 secs, sd=0.005 secs}
+  remoteCreateProcessing={min=20.070 secs, max=22.376 secs, median=21.113 secs, sd=0.464 secs}
+  remoteReadProcessing={min=1.816 secs, max=2.566 secs, median=2.236 secs, sd=0.135 secs}
+  remoteUpdateProcessing={min=29.215 secs, max=31.504 secs, median=30.425 secs, sd=0.520 secs}
+  remoteDeleteProcessing={min=29.357 secs, max=31.609 secs, median=30.602 secs, sd=0.503 secs}
+  remoteCreateProcessingRate=949.141 docs/sec
+  remoteReadProcessingRate=9,015.862 docs/sec
+  remoteUpdateProcessingRate=980.172 docs/sec
+  remoteDeleteProcessingRate=980.154 docs/sec
 ```
 
 * `timeTaken` is how long it took for the slowest connection to complete all CRUD operations.
-* `totalBytesSent` is the number of bytes of JSON sent to CouchDB, and therefore does not include bytes from HTTP headers.
-* `totalBytesReceived` is the number of bytes of JSON received from CouchDB, and therefore does not include bytes from HTTP headers.
+* `totalJsonBytesSent` is the number of bytes of JSON sent to CouchDB, and therefore does not include bytes from HTTP headers.
+* `totalJsonBytesReceived` is the number of bytes of JSON received from CouchDB, and therefore does not include bytes from HTTP headers.
 * `localProcessing` is how much time each connection spent preparing and encoding sent JSON and decoding received JSON.
 * `sendData` is how much time each connection spent sending data to CouchDB.
 * `remoteCreateProcessing` is how much time each connection spent waiting for the beginning of responses from CouchDB after sending messages for create operations.
