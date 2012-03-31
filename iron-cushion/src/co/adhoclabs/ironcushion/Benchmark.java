@@ -42,6 +42,7 @@ public class Benchmark {
 		}
 		
 		// Perform the bulk insert operations.
+		System.out.println("Starting bulk insert benchmark...");
 		List<BulkInsertConnectionStatistics> allBulkInsertConnectionStatistics = httpReactor.performBulkInserts(
 				allBulkInsertDocumentGenerators, bulkInsertPath);
 		BulkInsertBenchmarkResults bulkInsertBenchmarkResults =
@@ -69,6 +70,7 @@ public class Benchmark {
 		}
 
 		// Perform the CRUD operations.
+		System.out.println("Starting CRUD benchmark...");
 		List<CrudConnectionStatistics> allCrudConnectionStatistics = httpReactor.performCrudOperations(
 				allCrudOperations, crudPath);
 		CrudBenchmarkResults crudBenchmarkResults = BenchmarkResults.getCrudResults(

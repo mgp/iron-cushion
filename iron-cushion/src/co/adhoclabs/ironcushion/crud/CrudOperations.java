@@ -1,7 +1,7 @@
 package co.adhoclabs.ironcushion.crud;
 
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
 
 import org.json.simple.JSONObject;
 
@@ -183,6 +183,14 @@ public class CrudOperations {
 		}
 	}
 	
+	private static void shuffle(ValueGenerator valueGenerator, List<Type> operations) {
+		for (int i = operations.size(); i > 1; --i) {
+			int srcIndex = valueGenerator.nextInt(i);
+			int dstIndex = i - 1;
+			operations.set(srcIndex, operations.set(dstIndex, operations.get(srcIndex)));
+		}
+	}
+	
 	private static Type[] createCrudOperations(
 			CrudOperationCounts operationCounts, ValueGenerator valueGenerator) {
 		if (operationCounts.numDeleteOperations >
@@ -197,7 +205,7 @@ public class CrudOperations {
 		Arrays.fill(createAndReadOperations, 0, operationCounts.numCreateOperations, Type.CREATE);
 		Arrays.fill(createAndReadOperations, operationCounts.numCreateOperations,
 				createAndReadOperations.length, Type.READ);
-		Collections.shuffle(Arrays.asList(createAndReadOperations));
+		shuffle(valueGenerator, Arrays.asList(createAndReadOperations));
 		
 		// Add the CREATE and READ operations that are not paired with DELETE operations.
 		for (int i = 1 + operationCounts.numUpdateOperations, j = operationCounts.numDeleteOperations;
@@ -205,7 +213,7 @@ public class CrudOperations {
 			operations[i] = createAndReadOperations[j];
 		}
 		// Randomize the order of these operations.
-		Collections.shuffle(Arrays.asList(operations).subList(1, operations.length));
+		shuffle(valueGenerator, Arrays.asList(operations).subList(1, operations.length));
 		
 		// Determine the number of UPDATE operations to follow each CREATE and READ operation.
 		int[] numFollowingUpdates = new int[operationCounts.numDeleteOperations];
