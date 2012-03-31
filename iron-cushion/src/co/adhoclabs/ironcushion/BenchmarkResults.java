@@ -85,8 +85,8 @@ public abstract class BenchmarkResults {
 			sb.append(indent).append("localProcessing={").append(localProcessingStatistics).append("}\n");
 			sb.append(indent).append("sendData={").append(sendDataStatistics).append("}\n");
 			sb.append(indent).append("remoteProcessing={").append(remoteProcessingStatistics).append("}\n");
-			sb.append(indent).append("receiveDataStatistics={").append(receiveDataStatistics).append("}\n");
-			sb.append(indent).append("remoteProcessingRate=").append(format(remoteProcessingRate)).append(" docs/sec");
+			sb.append(indent).append("receiveData={").append(receiveDataStatistics).append("}\n");
+			sb.append(indent).append("remoteProcessingRate=").append(format(remoteProcessingRate)).append(" docs/sec\n");
 			sb.append(indent).append("localInsertRate=").append(format(localInsertRate)).append(" docs/sec");
 			return sb.toString();
 		}
@@ -154,7 +154,7 @@ public abstract class BenchmarkResults {
 			sb.append(indent).append("remoteReadProcessing={").append(remoteReadProcessingStatistics).append("}\n");
 			sb.append(indent).append("remoteUpdateProcessing={").append(remoteUpdateProcessingStatistics).append("}\n");
 			sb.append(indent).append("remoteDeleteProcessing={").append(remoteDeleteProcessingStatistics).append("}\n");
-			sb.append(indent).append("receiveDataStatistics={").append(receiveDataStatistics).append("}\n");
+			sb.append(indent).append("receiveData={").append(receiveDataStatistics).append("}\n");
 			sb.append(indent).append("remoteCreateProcessingRate=").append(format(remoteCreateProcessingRate)).append(" docs/sec\n");
 			sb.append(indent).append("remoteReadProcessingRate=").append(format(remoteReadProcessingRate)).append(" docs/sec\n");
 			sb.append(indent).append("remoteUpdateProcessingRate=").append(format(remoteDeleteProcessingRate)).append(" docs/sec\n");
