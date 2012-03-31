@@ -136,7 +136,18 @@ Can generate the following document:
 }
 ```
 
-## Interpreting Results
+## Running the Benchmark
+
+If you don't want to go through the hassle of running `javac` yourself, simply copy the files `iron-cushion/iron-cushion/dist/IronCushion-0.1.jar` and `iron-cushion/iron-cushion/lib/netty-3.3.1.Final.jar` to a directory outside of the `iron-cushion` project. Pull up the command line, `cd` into that directory, and run the following:
+
+```
+java -cp IronCushion-0.1.jar:netty-3.3.1.Final.jar co.adhoclabs.ironcushion.Benchmark [flags]
+
+```
+
+Where `[flags]` is replaced with the Iron Cushion command line flags of your choosing.
+
+## Understanding the Results
 
 The following flags specify using 100 connections, collectively bulk inserting 2,000,000 documents, followed by performing 20,000 create operations, 20,000 read operations, 30,000 update operations, and 30,000 delete operations.
 
