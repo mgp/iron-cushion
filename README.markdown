@@ -151,7 +151,9 @@ The following flags specify using 100 connections, collectively bulk inserting 2
 --delete_weight=3
 ```
 
-Running the benchmark program with these flags on my 1.83 GHz Intel Core Duo MacBook, CouchDB on my Intel Core 2 2.83GHz quad-core desktop, and across my 100Mbit home LAN, I get the following results:
+Running the benchmark program with these flags on my 1.83 GHz Intel Core Duo MacBook, CouchDB on my Intel Core 2 2.83GHz quad-core desktop, and across my 100Mbit home LAN, I get the results below.
+
+### Bulk Insert Results
 
 ```
 BULK INSERT BENCHMARK RESULTS:
@@ -176,6 +178,8 @@ BULK INSERT BENCHMARK RESULTS:
 * `remoteProcessingRate` is the rate at which CouchDB adds documents in bulk, i.e. the total number of documents bulk inserted divided by the sum of all `remoteProcessing` times.
 * `localInsertRate` is the rate at which the benchmark added documents in bulk, i.e. the total number of documents bulk inserted divided by the sum of all `sendData`, `remoteProcessing`, and `receiveData` times.
 
+### CRUD Results
+
 ```
 CRUD BENCHMARK RESULTS:
   timeTaken=84.654 secs
@@ -198,10 +202,10 @@ CRUD BENCHMARK RESULTS:
 * `totalJsonBytesReceived` is the number of bytes of JSON received from CouchDB, and therefore does not include bytes from HTTP headers.
 * `localProcessing` is how much time each connection spent preparing and encoding sent JSON and decoding received JSON.
 * `sendData` is how much time each connection spent sending data to CouchDB.
-* `remoteCreateProcessing` is how much time each connection spent waiting for the beginning of responses from CouchDB after sending messages for create operations.
-* `remoteReadProcessing` is how much time each connection spent waiting for the beginning of responses from CouchDB after sending messages for read operations.
-* `remoteUpdateProcessing` is how much time each connection spent waiting for the beginning of responses from CouchDB after sending messages for update operations.
-* `remoteDeleteProcessing` is how much time each connection spent waiting for the beginning of responses from CouchDB after sending messages for delete operations.
+* `remoteCreateProcessing` is how much time each connection spent waiting for a response from CouchDB after sending messages for create operations.
+* `remoteReadProcessing` is how much time each connection spent waiting for a response from CouchDB after sending messages for read operations.
+* `remoteUpdateProcessing` is how much time each connection spent waiting for a response from CouchDB after sending messages for update operations.
+* `remoteDeleteProcessing` is how much time each connection spent waiting for a response from CouchDB after sending messages for delete operations.
 * `remoteCreateProcessingRate` is the rate at which CouchDB creates documents, i.e. the total number of documents created divided by the sum of all `remoteCreateProcessing` times.
 * `remoteReadProcessingRate` is the rate at which CouchDB reads documents, i.e. the total number of documents read divided by the sum of all `remoteReadProcessing` times.
 * `remoteUpdateProcessingRate` is the rate at which CouchDB updates documents, i.e. the total number of documents updated divided by the sum of all `remoteUpdateProcessing` times.
