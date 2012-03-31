@@ -16,11 +16,11 @@ import co.adhoclabs.ironcushion.crud.CrudOperations;
 import co.adhoclabs.ironcushion.crud.CrudOperations.CrudOperationCounts;
 
 /**
- * Benchmark utility for CouchDB.
+ * The Iron Cushion benchmark for CouchDB.
  * 
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
-public class CouchDbBenchmark {
+public class Benchmark {
 	private static void performBulkInserts(ParsedArguments parsedArguments,
 			DocumentSchema schema, HttpReactor httpReactor, String[] words,
 			Random rng) throws BenchmarkException {
