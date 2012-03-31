@@ -11,7 +11,6 @@ public abstract class AbstractConnectionStatistics {
 	
 	protected final Timer localProcessingTimer;
 	protected final Timer sendDataTimer;
-	protected final Timer receiveDataTimer;
 
 	protected AbstractConnectionStatistics() {
 		jsonBytesSent = 0;
@@ -19,7 +18,6 @@ public abstract class AbstractConnectionStatistics {
 		
 		localProcessingTimer = new Timer();
 		sendDataTimer = new Timer();
-		receiveDataTimer = new Timer();
 	}
 
 	/**
@@ -81,18 +79,6 @@ public abstract class AbstractConnectionStatistics {
 	 */
 	public long getSendDataTimeMillis() {
 		return sendDataTimer.getTotalTimeMillis();
-	}
-	
-	/**
-	 * Starts the timer for receiving data.
-	 */
-	public abstract void startReceiveData();
-	
-	/**
-	 * @return the number of milliseconds spent on receiving data
-	 */
-	public long getReceivedDataTimeMillis() {
-		return receiveDataTimer.getTotalTimeMillis();
 	}
 	
 	/**

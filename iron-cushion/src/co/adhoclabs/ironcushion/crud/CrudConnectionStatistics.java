@@ -32,7 +32,6 @@ public class CrudConnectionStatistics extends AbstractConnectionStatistics {
 		REMOTE_READ_PROCESSING,
 		REMOTE_UPDATE_PROCESSING,
 		REMOTE_DELETE_PROCESSING,
-		RECEIVE_DATA,
 	}
 	
 	private RunningConnectionTimer runningTimer;
@@ -69,9 +68,6 @@ public class CrudConnectionStatistics extends AbstractConnectionStatistics {
 			case REMOTE_DELETE_PROCESSING:
 				remoteDeleteProcessingTimer.stop();
 				break;
-			case RECEIVE_DATA:
-				receiveDataTimer.stop();
-				return;
 			default:
 				break;
 			}
@@ -175,23 +171,12 @@ public class CrudConnectionStatistics extends AbstractConnectionStatistics {
 	}
 	
 	@Override
-	public void startReceiveData() {
-		if (runningTimer == RunningConnectionTimer.RECEIVE_DATA) {
-			return;
-		}
-		stop();
-		receiveDataTimer.start();
-		runningTimer = RunningConnectionTimer.RECEIVE_DATA;
-	}
-	
-	@Override
 	public long getTotalTimeMillis() {
 		return (localProcessingTimer.getTotalTimeMillis() +
 				sendDataTimer.getTotalTimeMillis() +
 				remoteCreateProcessingTimer.getTotalTimeMillis() +
 				remoteReadProcessingTimer.getTotalTimeMillis() +
 				remoteUpdateProcessingTimer.getTotalTimeMillis() +
-				remoteDeleteProcessingTimer.getTotalTimeMillis() +
-				receiveDataTimer.getTotalTimeMillis());
+				remoteDeleteProcessingTimer.getTotalTimeMillis());
 	}
 }

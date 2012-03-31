@@ -102,7 +102,6 @@ public abstract class BenchmarkResults {
 		public final SampleStatistics remoteReadProcessingStatistics;
 		public final SampleStatistics remoteUpdateProcessingStatistics;
 		public final SampleStatistics remoteDeleteProcessingStatistics;
-		public final SampleStatistics receiveDataStatistics;
 		
 		public final double remoteCreateProcessingRate;
 		public final double remoteReadProcessingRate;
@@ -118,7 +117,6 @@ public abstract class BenchmarkResults {
 				SampleStatistics remoteReadProcessingStatistics,
 				SampleStatistics remoteUpdateProcessingStatistics,
 				SampleStatistics remoteDeleteProcessingStatistics,
-				SampleStatistics receiveDataStatistics,
 				double remoteCreateProcessingRate,
 				double remoteReadProcessingRate,
 				double remoteUpdateProcessingRate,
@@ -131,7 +129,6 @@ public abstract class BenchmarkResults {
 			this.remoteReadProcessingStatistics = remoteReadProcessingStatistics;
 			this.remoteUpdateProcessingStatistics = remoteUpdateProcessingStatistics;
 			this.remoteDeleteProcessingStatistics = remoteDeleteProcessingStatistics;
-			this.receiveDataStatistics = receiveDataStatistics;
 			this.remoteCreateProcessingRate = remoteCreateProcessingRate;
 			this.remoteReadProcessingRate = remoteReadProcessingRate;
 			this.remoteUpdateProcessingRate = remoteUpdateProcessingRate;
@@ -154,7 +151,6 @@ public abstract class BenchmarkResults {
 			sb.append(indent).append("remoteReadProcessing={").append(remoteReadProcessingStatistics).append("}\n");
 			sb.append(indent).append("remoteUpdateProcessing={").append(remoteUpdateProcessingStatistics).append("}\n");
 			sb.append(indent).append("remoteDeleteProcessing={").append(remoteDeleteProcessingStatistics).append("}\n");
-			sb.append(indent).append("receiveData={").append(receiveDataStatistics).append("}\n");
 			sb.append(indent).append("remoteCreateProcessingRate=").append(format(remoteCreateProcessingRate)).append(" docs/sec\n");
 			sb.append(indent).append("remoteReadProcessingRate=").append(format(remoteReadProcessingRate)).append(" docs/sec\n");
 			sb.append(indent).append("remoteUpdateProcessingRate=").append(format(remoteDeleteProcessingRate)).append(" docs/sec\n");
@@ -214,16 +210,6 @@ public abstract class BenchmarkResults {
 		return SampleStatistics.statisticsForPopulation(values);
 	}
 	
-	private static SampleStatistics getReceiveDataStatistics(
-			List<? extends AbstractConnectionStatistics> allConnectionStatistics) {
-		long[] values = new long[allConnectionStatistics.size()];
-		for (int i = 0; i < allConnectionStatistics.size(); ++i) {
-			AbstractConnectionStatistics connectionStatistics = allConnectionStatistics.get(i);
-			values[i] = connectionStatistics.getReceivedDataTimeMillis();
-		}
-		return SampleStatistics.statisticsForPopulation(values);
-	}
-	
 	/**
 	 * Returns benchmark results for the connection statistics for bulk inserts.
 	 * 
@@ -249,7 +235,11 @@ public abstract class BenchmarkResults {
 		}
 		SampleStatistics remoteProcessingStatistics = SampleStatistics.statisticsForPopulation(values);
 		// Get statistics for receiving data.
-		SampleStatistics receiveDataStatistics = getReceiveDataStatistics(allConnectionStatistics);
+		for (int i = 0; i < allConnectionStatistics.size(); ++i) {
+			BulkInsertConnectionStatistics connectionStatistics = allConnectionStatistics.get(i);
+			values[i] = connectionStatistics.getReceivedDataTimeMillis();
+		}
+		SampleStatistics receiveDataStatistics = SampleStatistics.statisticsForPopulation(values);
 
 		// Calculate the rate of documents inserted per second.
 		long numBulkInsertedDocs = (parsedArguments.numDocumentsPerBulkInsert *
@@ -318,8 +308,6 @@ public abstract class BenchmarkResults {
 			values[i] = connectionStatistics.getRemoteDeleteProcessingTimeMillis();
 		}
 		SampleStatistics remoteDeleteProcessingStatistics = SampleStatistics.statisticsForPopulation(values);
-		// Get statistics for receiving data.
-		SampleStatistics receiveDataStatistics = getReceiveDataStatistics(allConnectionStatistics);
 
 		// Calculate the rate of documents created per second.
 		double createRate = 0;
@@ -355,7 +343,6 @@ public abstract class BenchmarkResults {
 				remoteReadProcessingStatistics,
 				remoteUpdateProcessingStatistics,
 				remoteDeleteProcessingStatistics,
-				receiveDataStatistics,
 				createRate,
 				readRate,
 				updateRate,

@@ -10,10 +10,12 @@ import co.adhoclabs.ironcushion.Timer;
  */
 public class BulkInsertConnectionStatistics extends AbstractConnectionStatistics {
 	private final Timer remoteProcessingTimer;
+	private final Timer receiveDataTimer;
 
 	public BulkInsertConnectionStatistics() {
 		super();
 		remoteProcessingTimer = new Timer();
+		receiveDataTimer = new Timer();
 	}
 	
 	/**
@@ -99,7 +101,9 @@ public class BulkInsertConnectionStatistics extends AbstractConnectionStatistics
 		return remoteProcessingTimer.getTotalTimeMillis();
 	}
 	
-	@Override
+	/**
+	 * Starts the timer for receiving data.
+	 */
 	public void startReceiveData() {
 		if (runningTimer == RunningConnectionTimer.RECEIVE_DATA) {
 			return;
@@ -107,6 +111,13 @@ public class BulkInsertConnectionStatistics extends AbstractConnectionStatistics
 		stop();
 		receiveDataTimer.start();
 		runningTimer = RunningConnectionTimer.RECEIVE_DATA;
+	}
+	
+	/**
+	 * @return the number of milliseconds spent on receiving data
+	 */
+	public long getReceivedDataTimeMillis() {
+		return receiveDataTimer.getTotalTimeMillis();
 	}
 	
 	@Override
