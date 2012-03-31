@@ -425,6 +425,9 @@ public class DocumentSchema {
 			JSONParser jsonParser = new JSONParser();
 			JSONObject json = (JSONObject) jsonParser.parse(bufferedReader);
 			bufferedReader.close();
+			// Any document stored in CouchDB is a valid schema. 
+			json.remove("_id");
+			json.remove("_rev");
 			ObjectValue root = JsonParser.parseJson(json);
 			return new DocumentSchema(root);
 		} catch (IOException e) {
