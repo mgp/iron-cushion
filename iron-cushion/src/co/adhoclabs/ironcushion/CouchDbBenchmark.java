@@ -21,35 +21,6 @@ import co.adhoclabs.ironcushion.crud.CrudOperations.CrudOperationCounts;
  * @author Michael Parker (michael.g.parker@gmail.com)
  */
 public class CouchDbBenchmark {
-	private static void performCrudOperations(ParsedArguments parsedArguments,
-			DocumentSchema schema, HttpReactor httpReactor, String[] words,
-			Random rng) throws BenchmarkException {
-		// Create the CRUD operation path.
-		StringBuilder sb = new StringBuilder();
-		sb.append('/').append(parsedArguments.databaseName);
-		String crudPath = sb.toString();
-		
-		// Create the CRUD operations to perform.
-		List<CrudOperations> allCrudOperations = new ArrayList<CrudOperations>(
-				parsedArguments.numConnections);
-		CrudOperationCounts crudOperationCounts = CrudOperations.createOperationCounts(
-				parsedArguments);
-		for (int i = 0; i < parsedArguments.numConnections; ++i) {
-			CrudOperations crudOperations = CrudOperations.createCrudOperations(
-					i, schema, new ValueGenerator(words, rng), parsedArguments, crudOperationCounts);
-			allCrudOperations.add(crudOperations);
-		}
-
-		// Perform the CRUD operations.
-		List<CrudConnectionStatistics> allCrudConnectionStatistics = httpReactor.performCrudOperations(
-				allCrudOperations, crudPath);
-		CrudBenchmarkResults crudBenchmarkResults = BenchmarkResults.getCrudResults(
-				parsedArguments.numConnections, crudOperationCounts, allCrudConnectionStatistics);
-		System.out.println("CRUD BENCHMARK RESULTS:");
-		System.out.println(crudBenchmarkResults);
-		System.out.println();
-	}
-	
 	private static void performBulkInserts(ParsedArguments parsedArguments,
 			DocumentSchema schema, HttpReactor httpReactor, String[] words,
 			Random rng) throws BenchmarkException {
@@ -76,13 +47,47 @@ public class CouchDbBenchmark {
 		BulkInsertBenchmarkResults bulkInsertBenchmarkResults =
 				BenchmarkResults.getBulkInsertResults(parsedArguments, allBulkInsertConnectionStatistics);
 		System.out.println("BULK INSERT BENCHMARK RESULTS:");
-		System.out.println(bulkInsertBenchmarkResults);
+		System.out.println(bulkInsertBenchmarkResults.toString("  "));
+		System.out.println();
+	}
+	
+	private static void performCrudOperations(ParsedArguments parsedArguments,
+			DocumentSchema schema, HttpReactor httpReactor, String[] words,
+			Random rng) throws BenchmarkException {
+		// Create the CRUD operation path.
+		StringBuilder sb = new StringBuilder();
+		sb.append('/').append(parsedArguments.databaseName);
+		String crudPath = sb.toString();
+		
+		// Create the CRUD operations to perform.
+		List<CrudOperations> allCrudOperations = new ArrayList<CrudOperations>(
+				parsedArguments.numConnections);
+		CrudOperationCounts crudOperationCounts = CrudOperations.createOperationCounts(
+				parsedArguments);
+		for (int i = 0; i < parsedArguments.numConnections; ++i) {
+			CrudOperations crudOperations = CrudOperations.createCrudOperations(
+					i, schema, new ValueGenerator(words, rng), parsedArguments, crudOperationCounts);
+			allCrudOperations.add(crudOperations);
+		}
+
+		// Perform the CRUD operations.
+		List<CrudConnectionStatistics> allCrudConnectionStatistics = httpReactor.performCrudOperations(
+				allCrudOperations, crudPath);
+		CrudBenchmarkResults crudBenchmarkResults = BenchmarkResults.getCrudResults(
+				parsedArguments.numConnections, crudOperationCounts, allCrudConnectionStatistics);
+		System.out.println("CRUD BENCHMARK RESULTS:");
+		System.out.println(crudBenchmarkResults.toString("  "));
 		System.out.println();
 	}
 	
 	public static void main(String[] args) throws BenchmarkException {
 		ParsedArguments parsedArguments = ParsedArguments.parseArguments(args);
-		Random rng = new Random(2012);
+		Random rng = null;
+		if (parsedArguments.seed != null) {
+			rng = new Random(parsedArguments.seed);
+		} else {
+			rng = new Random();
+		}
 
 		// Create the document schema.
 		DocumentSchema schema = null;

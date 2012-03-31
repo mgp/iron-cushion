@@ -20,6 +20,10 @@ public class ParsedArguments {
 	 * The number of connections to open concurrently.
 	 */
 	public final int numConnections;
+	/**
+	 * The seed for the random number generator, or {@code null} if not provided.
+	 */
+	public final Integer seed;
 	
 	/**
 	 * The number of documents in each bulk insert operation.
@@ -68,6 +72,7 @@ public class ParsedArguments {
 	private ParsedArguments(String databaseAddress,
 			String databaseName,
 			int numConnections,
+			Integer seed,
 			int numDocumentsPerBulkInsert,
 			int numBulkInsertOperations,
 			int numCrudOperations,
@@ -80,6 +85,7 @@ public class ParsedArguments {
 		this.databaseAddress = databaseAddress;
 		this.databaseName = databaseName;
 		this.numConnections = numConnections;
+		this.seed = seed;
 		this.numDocumentsPerBulkInsert = numDocumentsPerBulkInsert;
 		this.numBulkInsertOperations = numBulkInsertOperations;
 		this.numCrudOperations = numCrudOperations;
@@ -94,6 +100,7 @@ public class ParsedArguments {
 	private static final String DATABASE_ADDRESS_PREFIX = "--database_address=";
 	private static final String DATABASE_NAME_PREFIX = "--database_name=";
 	private static final String NUM_CONNECTIONS_PREFIX = "--num_connections=";
+	private static final String SEED_PREFIX = "--seed=";
 
 	private static final String NUM_DOCUMENTS_PER_BULK_INSERT_PREFIX = "--num_documents_per_bulk_insert=";
 	private static final String NUM_BULK_INSERT_OPERATIONS_PREFIX = "--num_bulk_insert_operations=";
@@ -120,6 +127,7 @@ public class ParsedArguments {
 		String databaseAddress = null;
 		String databaseName = null;
 		int numConnections = 1;
+		Integer seed = null;
 		int numDocumentsPerBulkInsert = 0;
 		int numBulkInsertOperations = 0;
 		int numCrudOperations = 0;
@@ -137,6 +145,8 @@ public class ParsedArguments {
 				databaseName = valueForArgument(arg, DATABASE_NAME_PREFIX);
 			} else if (arg.startsWith(NUM_CONNECTIONS_PREFIX)) {
 				numConnections = intValueForArgument(arg, NUM_CONNECTIONS_PREFIX);
+			} else if (arg.startsWith(SEED_PREFIX)) {
+				seed = Integer.valueOf(valueForArgument(arg, SEED_PREFIX));
 			} else if (arg.startsWith(NUM_DOCUMENTS_PER_BULK_INSERT_PREFIX)) {
 				numDocumentsPerBulkInsert = intValueForArgument(arg, NUM_DOCUMENTS_PER_BULK_INSERT_PREFIX);
 			} else if (arg.startsWith(NUM_BULK_INSERT_OPERATIONS_PREFIX)) {
@@ -227,6 +237,7 @@ public class ParsedArguments {
 		return new ParsedArguments(databaseAddress,
 				databaseName,
 				numConnections,
+				seed,
 				numDocumentsPerBulkInsert,
 				numBulkInsertOperations,
 				numCrudOperations,
