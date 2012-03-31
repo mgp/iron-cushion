@@ -53,7 +53,7 @@ public class Benchmark {
 	
 	private static void performCrudOperations(ParsedArguments parsedArguments,
 			DocumentSchema schema, HttpReactor httpReactor, String[] words,
-			Random rng) throws BenchmarkException {
+			Random rng, CrudOperationCounts crudOperationCounts) throws BenchmarkException {
 		// Create the CRUD operation path.
 		StringBuilder sb = new StringBuilder();
 		sb.append('/').append(parsedArguments.databaseName);
@@ -62,8 +62,6 @@ public class Benchmark {
 		// Create the CRUD operations to perform.
 		List<CrudOperations> allCrudOperations = new ArrayList<CrudOperations>(
 				parsedArguments.numConnections);
-		CrudOperationCounts crudOperationCounts = CrudOperations.createOperationCounts(
-				parsedArguments);
 		for (int i = 0; i < parsedArguments.numConnections; ++i) {
 			CrudOperations crudOperations = CrudOperations.createCrudOperations(
 					i, schema, new ValueGenerator(words, rng), parsedArguments, crudOperationCounts);
@@ -82,6 +80,16 @@ public class Benchmark {
 	
 	public static void main(String[] args) throws BenchmarkException {
 		ParsedArguments parsedArguments = ParsedArguments.parseArguments(args);
+		CrudOperationCounts crudOperationCounts = CrudOperations.createOperationCounts(
+				parsedArguments);
+		int numInsertedDocumentsPerConnection = crudOperationCounts.numCreateOperations +
+				(parsedArguments.numDocumentsPerBulkInsert * parsedArguments.numBulkInsertOperations);
+		if (crudOperationCounts.numDeleteOperations > numInsertedDocumentsPerConnection) {
+			throw new IllegalArgumentException(
+					crudOperationCounts.numDeleteOperations + " docs deleted > " +
+						numInsertedDocumentsPerConnection + " docs inserted per connection");
+		}
+
 		Random rng = null;
 		if (parsedArguments.seed != null) {
 			rng = new Random(parsedArguments.seed);
