@@ -120,6 +120,6 @@ public class Benchmark {
 		// Perform the bulk inserts.
 		performBulkInserts(parsedArguments, schema, httpReactor, words, rng);
 		// Perform the CRUD operations.
-		performCrudOperations(parsedArguments, schema, httpReactor, words, rng);
+		performCrudOperations(parsedArguments, schema, httpReactor, words, rng, crudOperationCounts);
 	}
 }
