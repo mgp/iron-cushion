@@ -153,7 +153,7 @@ public abstract class BenchmarkResults {
 			sb.append(indent).append("remoteDeleteProcessing={").append(remoteDeleteProcessingStatistics).append("}\n");
 			sb.append(indent).append("remoteCreateProcessingRate=").append(format(remoteCreateProcessingRate)).append(" docs/sec\n");
 			sb.append(indent).append("remoteReadProcessingRate=").append(format(remoteReadProcessingRate)).append(" docs/sec\n");
-			sb.append(indent).append("remoteUpdateProcessingRate=").append(format(remoteDeleteProcessingRate)).append(" docs/sec\n");
+			sb.append(indent).append("remoteUpdateProcessingRate=").append(format(remoteUpdateProcessingRate)).append(" docs/sec\n");
 			sb.append(indent).append("remoteDeleteProcessingRate=").append(format(remoteDeleteProcessingRate)).append(" docs/sec");
 			return sb.toString();
 		}
