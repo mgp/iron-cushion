@@ -9,11 +9,11 @@ It is written in [Java](http://www.java.com) for version 5.0 and higher, depends
 * `database_address`: The address of the database, of the form `http://[hostname]:[port]` or `http://[ipaddress]:[port]`.
 * `database_name`: The name of the database.
 * `num_connections`: The number of concurrent connections to establish to the database.
-* `json_document_schema_file`: A file containing JSON describing the schema of documents created during the benchmark.
-* `xml_document_schema_file`: An file containing XML describing the schema of documents created during the benchmark.
+* `json_document_schema_filename`: A file containing JSON describing the schema of documents created during the benchmark.
+* `xml_document_schema_filename`: An file containing XML describing the schema of documents created during the benchmark.
 * `seed`: An optional integer flag that specifies the seed to use for the random number generator.
 
-Either `json_document_schema_file` or `xml_document_schema_file` must be provided. For details on the contents of these files, see "Document Generation" below.
+Either `json_document_schema_filename` or `xml_document_schema_filename` must be provided. For details on the contents of these files, see "Document Generation" below.
 
 ### Bulk Insert Flags
 
@@ -51,7 +51,7 @@ Subject to the quality of the pseudo-random number generator, generated values a
 
 ### JSON
 
-The `json_document_schema_file` command line flag specifies a file containing JSON that defines a schema for documents in the database.
+The `json_document_schema_filename` command line flag specifies a file containing JSON that defines a schema for documents in the database.
 
 A new document is generated from the schema by the following rules:
 
@@ -66,7 +66,7 @@ An example can be found in `iron-cushion/iron-cushion/data/example_schema.json`.
 
 ### XML
 
-The `xml_document_schema_file` command line flag specifies an file containing XML that defines a schema for documents in the database. In the future, the XML file may allow adding attributes to these tags to specify properties like minimum and maximum values for generated integers, etc.
+The `xml_document_schema_filename` command line flag specifies an file containing XML that defines a schema for documents in the database. In the future, the XML file may allow adding attributes to these tags to specify properties like minimum and maximum values for generated integers, etc.
 
 There are seven principal tags, and the outer-most tag must be `<object>`:
 
