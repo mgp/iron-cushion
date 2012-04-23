@@ -10,7 +10,7 @@ It is written in [Java](http://www.java.com) for version 5.0 and higher, depends
 * `database_name`: The name of the database.
 * `num_connections`: The number of concurrent connections to establish to the database.
 * `json_document_schema_filename`: A file containing JSON describing the schema of documents created during the benchmark.
-* `xml_document_schema_filename`: An file containing XML describing the schema of documents created during the benchmark.
+* `xml_document_schema_filename`: A file containing XML describing the schema of documents created during the benchmark.
 * `seed`: An optional integer flag that specifies the seed to use for the random number generator.
 
 Either `json_document_schema_filename` or `xml_document_schema_filename` must be provided. For details on the contents of these files, see "Document Generation" below.
