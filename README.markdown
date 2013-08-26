@@ -1,6 +1,6 @@
 ![Iron Cushion logo](http://mgp.github.com/assets/images/iron-cushion.png)
 
-Iron Cushion is a benchmark and load testing tool for [CouchDB](http://couchdb.apache.org/), developed by [adhoclabs](http://adhoclabs.co). It proceeds in two steps: First, documents are bulk inserted using CouchDB's [Bulk Document API](http://wiki.apache.org/couchdb/HTTP_Bulk_Document_API). Second, documents are individually created, read, updated, and deleted with random ordering of operations using CouchDB's [Document API](http://wiki.apache.org/couchdb/HTTP_Document_API). Below we refer to the former as the "bulk insert step," and the latter as the "CRUD operations step." Statistics for both steps are recorded separately and displayed afterward.
+Iron Cushion is a benchmark and load testing tool for [CouchDB](http://couchdb.apache.org/), developed by [Ad Hoc Labs, Inc](http://adhoclabs.co). It proceeds in two steps: First, documents are bulk inserted using CouchDB's [Bulk Document API](http://wiki.apache.org/couchdb/HTTP_Bulk_Document_API). Second, documents are individually created, read, updated, and deleted with random ordering of operations using CouchDB's [Document API](http://wiki.apache.org/couchdb/HTTP_Document_API). Below we refer to the former as the "bulk insert step," and the latter as the "CRUD operations step." Statistics for both steps are recorded separately and displayed afterward.
 
 It is written in [Java](http://www.java.com) for version 5.0 and higher, depends only on the [Netty library](http://netty.io), and is released under the [MIT license](http://www.opensource.org/licenses/mit-license.html).
 
@@ -140,9 +140,8 @@ Can generate the following document:
 
 If you don't want to go through the hassle of running `javac` yourself, simply copy the files `iron-cushion/iron-cushion/dist/IronCushion-0.1.jar` and `iron-cushion/iron-cushion/lib/netty-3.3.1.Final.jar` to a directory outside of the `iron-cushion` project. Pull up the command line, `cd` into that directory, and run the following:
 
-```
+```text
 java -cp IronCushion-0.1.jar:netty-3.3.1.Final.jar co.adhoclabs.ironcushion.Benchmark [flags]
-
 ```
 
 Where `[flags]` is replaced with the Iron Cushion command line flags of your choosing.
@@ -151,7 +150,7 @@ Where `[flags]` is replaced with the Iron Cushion command line flags of your cho
 
 The following flags specify using 100 connections, collectively bulk inserting 2,000,000 documents, followed by performing 20,000 create operations, 20,000 read operations, 30,000 update operations, and 30,000 delete operations.
 
-```
+```text
 --num_connections=100
 --num_documents_per_bulk_insert=1000
 --num_bulk_insert_operations=20
@@ -166,7 +165,7 @@ Running the benchmark program with these flags on my 1.83 GHz Intel Core Duo Mac
 
 ### Bulk Insert Results
 
-```
+```text
 BULK INSERT BENCHMARK RESULTS:
   timeTaken=249.182 secs
   totalJsonBytesSent=374,240,177 bytes
@@ -191,7 +190,7 @@ BULK INSERT BENCHMARK RESULTS:
 
 ### CRUD Results
 
-```
+```text
 CRUD BENCHMARK RESULTS:
   timeTaken=84.654 secs
   totalJsonBytesSent=10,646,425 bytes
@@ -221,4 +220,3 @@ CRUD BENCHMARK RESULTS:
 * `remoteReadProcessingRate` is the rate at which CouchDB reads documents, i.e. the total number of documents read divided by the sum of all `remoteReadProcessing` times.
 * `remoteUpdateProcessingRate` is the rate at which CouchDB updates documents, i.e. the total number of documents updated divided by the sum of all `remoteUpdateProcessing` times.
 * `remoteDeleteProcessingRate` is the rate at which CouchDB deletes documents, i.e. the total number of documents deleted divided by the sum of all `remoteDeleteProcessing` times.
-
