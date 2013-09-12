@@ -1,4 +1,4 @@
-![Iron Cushion logo](http://mgp.github.com/assets/images/iron-cushion.png)
+![Iron Cushion logo](http://omgitsmgp.com/assets/iron-cushion/iron-cushion.png)
 
 Iron Cushion is a benchmark and load testing tool for [CouchDB](http://couchdb.apache.org/), developed by [Ad Hoc Labs, Inc](http://adhoclabs.co). It proceeds in two steps: First, documents are bulk inserted using CouchDB's [Bulk Document API](http://wiki.apache.org/couchdb/HTTP_Bulk_Document_API). Second, documents are individually created, read, updated, and deleted with random ordering of operations using CouchDB's [Document API](http://wiki.apache.org/couchdb/HTTP_Document_API). Below we refer to the former as the "bulk insert step," and the latter as the "CRUD operations step." Statistics for both steps are recorded separately and displayed afterward.
 
